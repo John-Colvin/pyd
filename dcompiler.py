@@ -411,20 +411,16 @@ class DCompiler(cc.CCompiler):
         if self.build_exe:
             pass
         else:
-            # Add DLL/SO boilerplate code file.
+            # Add DLL boilerplate code file.
             if _isPlatWin:
                 boilerplatePath = os.path.join(_infraDir, 'd',
                     'python_dll_windows_boilerplate.d'
                 )
-            else:
-                boilerplatePath = os.path.join(_infraDir, 'd',
-                    'python_so_linux_boilerplate.d'
-                )
-            if not os.path.isfile(boilerplatePath):
-                raise DistutilsFileError('Required supporting code file "%s"'
-                    ' is missing.' % boilerplatePath
-                )
-            sources.append((winpath(boilerplatePath,self.winonly), 'infra'))
+                if not os.path.isfile(boilerplatePath):
+                    raise DistutilsFileError('Required supporting code file "%s"'
+                            ' is missing.' % boilerplatePath
+                            )
+                sources.append((winpath(boilerplatePath,self.winonly), 'infra'))
 
         for imp in self.string_imports_from_ext:
             if not (os.path.isfile(imp) or os.path.isdir(imp)):
@@ -721,15 +717,7 @@ class DMDDCompiler(DCompiler):
             output_dir = kwargs.get('output_dir', '')
             if not os.path.exists(os.path.join(output_dir,'infra')):
                 os.makedirs(os.path.join(output_dir,'infra'))
-            src = os.path.join(_infraDir, 'd', 'so_ctor.c')
-            dsto = os.path.join(output_dir, 'infra', 'so_ctor.o')
-            spawn0(self,['gcc','-c', src, '-fPIC','-o',dsto])
-            self._dmd_so_ctor = dsto
         return DCompiler.compile(self, *args, **kwargs)
-    def link (self, *args, **kwargs):
-        if not _isPlatWin and not self.build_exe:
-            args[1].append(self._dmd_so_ctor)
-        return DCompiler.link(self, *args, **kwargs)
 
 class GDCDCompiler(DCompiler):
     compiler_type = 'gdc'

@@ -7,6 +7,8 @@ extern(C) void PydMain();
 version(Python_3_0_Or_Later) {
     import deimos.python.Python;
     extern(C) export PyObject* PyInit_%(modulename)s() {
+        import core.runtime;
+        rt_init();
         return pyd.exception.exception_catcher(delegate PyObject*() {
                 pyd.thread.ensureAttached();
                 pyd.def.pyd_module_name = "%(modulename)s";
