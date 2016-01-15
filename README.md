@@ -7,11 +7,14 @@
 
 PyD provides seamless interoperability between Python and the D programming language.
 
+This repo is a fork with the aim of massively cleaning up PyD and bringing it up to
+speed with modern D. So far, so good.
+
 # Requirements
 
 ## Python
 
-CPython 2.6+
+CPython 2.7+
 
 ## D Compilers
 
