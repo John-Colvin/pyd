@@ -17,7 +17,7 @@ void baz(int i=10, string s="moo") {
     writefln("i = %s\ns = %s", i, s);
 }
 
-extern (C) void PydMain() {
+mixin PydInit!({
     // Plain old function
     def!(foo)();
     // Wraps the lexically first function under the given name
@@ -28,4 +28,4 @@ extern (C) void PydMain() {
     def!(baz)();
 
     module_init();
-}
+});

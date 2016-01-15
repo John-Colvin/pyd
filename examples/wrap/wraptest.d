@@ -32,7 +32,7 @@ class MyClass {
 
 }
 
-extern(C) void PydMain() {
+mixin PydInit!({
     module_init();
     wrap_class!(
             MyClass,
@@ -43,4 +43,5 @@ extern(C) void PydMain() {
             OpBinary!("*", int),
             Init!(int),
             )();
-}
+});
+

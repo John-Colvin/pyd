@@ -1,3 +1,4 @@
+/*
 Copyright (c) 2006 Kirk McDonald
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -17,4 +18,31 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+/**
+ * This module simply publicly imports all of the other components of the Pyd
+ * package (except pyd.embedded), making them all available from a single point.
+ */
+module pyd.pyd;
+
+import std.compiler;
+static assert(version_major == 2 && version_minor >= 60, 
+        "pyd requires FE 2.060 or later");
+
+public {
+    import pyd.class_wrap;
+    import pyd.def;
+    import pyd.exception;
+    import pyd.func_wrap;
+    import pyd.make_object;
+    import pyd.pydobject;
+    import pyd.struct_wrap;
+    import pyd.pydmain;
+
+    // Importing these is only needed as a workaround to bug #311
+    import pyd.ctor_wrap;
+    import pyd.exception;
+    import pyd.func_wrap;
+}
 

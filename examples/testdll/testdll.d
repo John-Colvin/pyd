@@ -142,7 +142,7 @@ void conv2(A a) {
     writeln(a.i);
 }
 
-extern(C) void PydMain() {
+mixin PydInit!({
     pragma(msg, "testdll.PydMain");
     ex_d_to_python(delegate int(A a) { return a.i; });
     ex_python_to_d(delegate A(int i) { A a; a.i = i; return a; });
@@ -210,5 +210,5 @@ extern(C) void PydMain() {
         Member!("s", Docstring!"Another sample data member of S."),
     )();
 
-}
+});
 

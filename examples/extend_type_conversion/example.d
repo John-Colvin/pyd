@@ -17,6 +17,7 @@ void bar(S s) {
     writeln(s);
 }
 
+mixin PydInit!"example";
 extern(C) void PydMain() {
     ex_d_to_python((S s) => s.i);
     ex_python_to_d((int i) => S(i));

@@ -37,7 +37,7 @@ Base return_poly_derived() {
     return b2;
 }
 
-extern(C) void PydMain() {
+mixin PydInit!({
     def!(call_poly)();
     def!(return_poly_base)();
     def!(return_poly_derived)();
@@ -56,5 +56,5 @@ extern(C) void PydMain() {
         Init!(int),
         Def!(Derived.foo)
     )();
-}
+});
 

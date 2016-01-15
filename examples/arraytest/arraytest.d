@@ -30,7 +30,7 @@ Foo test() {
     return new Foo(10);
 }
 
-extern(C) void PydMain() {
+mixin PydInit!({
     global_array.length = 5;
     for (int i=0; i<5; ++i) {
         global_array[i] = new Foo(i);
@@ -45,4 +45,4 @@ extern(C) void PydMain() {
         Repr!(Foo.toString),
         Def!(Foo.bar)
     )();
-}
+});

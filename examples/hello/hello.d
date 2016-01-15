@@ -8,6 +8,7 @@ void hello() {
     writefln("Hello, world!");
 }
 
+mixin PydInit!"hello";
 extern(C) void PydMain() {
     def!(hello)();
     module_init();

@@ -7,17 +7,12 @@
         "Kirk McDonald"
     ],
     "license": "MIT",
-    "importPaths": [
-        "infrastructure/"
-    ],
-    "sourcePaths": [
-        "infrastructure/pyd/",
-        "infrastructure/deimos/",
-        "infrastructure/util/"
-    ],
     "versions-linux":   ["Python_Unicode_UCS4"],
     "versions-osx":     ["Python_Unicode_UCS2"],
     "versions-windows": ["Python_Unicode_UCS2"],
+    "dependencies": {
+        "cpython": "*"
+    },
     "configurations": [
         {
             "name": "python27",
@@ -27,12 +22,9 @@
                 "Python_2_6_Or_Later",
                 "Python_2_7_Or_Later",
             ],
-            "libs-posix": [
-                "python2.7"
-            ],
-            "libs-windows-dmd": [
-                "$PYD_PACKAGE_DIR\\infrastructure\\windows\\python27_digitalmars"
-            ]
+            "subConfigurations": {
+                "cpython": "python27"
+            }
         },
         {
             "name": "python33",
@@ -46,10 +38,9 @@
                 "Python_3_2_Or_Later",
                 "Python_3_3_Or_Later",
             ],
-            "libs-posix": ["python3.3m"],
-            "libs-windows-dmd": [
-                "$PYD_PACKAGE_DIR\\infrastructure\\windows\\python33_digitalmars"
-            ]
+            "subConfigurations": {
+                "cpython": "python33"
+            }
         },
         {
             "name": "python34",
@@ -64,10 +55,9 @@
                 "Python_3_3_Or_Later",
                 "Python_3_4_Or_Later",
             ],
-            "libs-posix": ["python3.4m"],
-            "libs-windows-dmd": [
-                "$PYD_PACKAGE_DIR\\infrastructure\\windows\\python34_digitalmars"
-            ]
+            "subConfigurations": {
+                "cpython": "python34"
+            }
         },
         {
             "name": "python35",
@@ -83,10 +73,9 @@
                 "Python_3_4_Or_Later",
                 "Python_3_5_Or_Later"
             ],
-            "libs-posix": ["python3.5m"],
-            "libs-windows-dmd": [
-                "$PYD_PACKAGE_DIR\\infrastructure\\windows\\python35_digitalmars"
-            ]
+            "subConfigurations": {
+                "cpython": "python35"
+            }
         }
     ]
 }
