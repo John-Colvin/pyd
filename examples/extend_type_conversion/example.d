@@ -17,13 +17,12 @@ void bar(S s) {
     writeln(s);
 }
 
-mixin PydInit!"example";
-extern(C) void PydMain() {
+mixin PydInit!({
     ex_d_to_python((S s) => s.i);
     ex_python_to_d((int i) => S(i));
 
     def!foo();
     def!bar();
     module_init();
-}
+});
 
