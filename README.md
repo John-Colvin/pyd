@@ -25,8 +25,8 @@ Note all D compilers are based on DMD's front end, so while LDC and GDC have
 their own verisoning schemes, I only pay attention to the front end version. 
 
 
-[build-status-badge]: https://travis-ci.org/ariovistus/pyd.svg?branch=master
-[build-status]: https://travis-ci.org/ariovistus/pyd
+[build-status-badge]: https://travis-ci.org/John-Colvin/pyd.svg?branch=master
+[build-status]: https://travis-ci.org/John-Colvin/pyd
 [docs-badge]: https://readthedocs.org/projects/pyd/badge/
 [docs]: http://pyd.readthedocs.org/
 [pypi-version]: https://pypip.in/version/pyd/badge.svg
