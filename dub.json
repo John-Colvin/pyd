@@ -27,6 +27,48 @@
             }
         },
         {
+            "name": "python30",
+            "versions": [
+                "Python_2_4_Or_Later",
+                "Python_2_5_Or_Later",
+                "Python_2_6_Or_Later",
+                "Python_2_7_Or_Later",
+                "Python_3_0_Or_Later",
+            ],
+            "subConfigurations": {
+                "cpython": "python30"
+            }
+        },
+        {
+            "name": "python31",
+            "versions": [
+                "Python_2_4_Or_Later",
+                "Python_2_5_Or_Later",
+                "Python_2_6_Or_Later",
+                "Python_2_7_Or_Later",
+                "Python_3_0_Or_Later",
+                "Python_3_1_Or_Later",
+            ],
+            "subConfigurations": {
+                "cpython": "python31"
+            }
+        },
+        {
+            "name": "python32",
+            "versions": [
+                "Python_2_4_Or_Later",
+                "Python_2_5_Or_Later",
+                "Python_2_6_Or_Later",
+                "Python_2_7_Or_Later",
+                "Python_3_0_Or_Later",
+                "Python_3_1_Or_Later",
+                "Python_3_2_Or_Later",
+            ],
+            "subConfigurations": {
+                "cpython": "python32"
+            }
+        },
+        {
             "name": "python33",
             "versions": [
                 "Python_2_4_Or_Later",
