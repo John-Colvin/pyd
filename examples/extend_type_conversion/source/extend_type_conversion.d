@@ -1,4 +1,4 @@
-module example;
+module extend_type_conversion;
 
 import std.stdio;
 import pyd.pyd;

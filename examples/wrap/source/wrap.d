@@ -1,3 +1,5 @@
+module wrap;
+
 import pyd.pyd;
 import std.traits;
 

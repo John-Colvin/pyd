@@ -1,3 +1,5 @@
+module def_example;
+
 import pyd.pyd;
 import std.stdio;
 

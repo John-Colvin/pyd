@@ -1,7 +1,7 @@
 from __future__ import print_function
-import wraptest
+import wrap
 
-a = wraptest.MyClass(2)
+a = wrap.MyClass(2)
 print(a.z("foo"))
 print(a)
 print(type(a))

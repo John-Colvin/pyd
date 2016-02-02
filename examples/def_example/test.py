@@ -1,4 +1,4 @@
-import example
+import def_example as example
 
 example.foo(100)
 example.bar1(1)

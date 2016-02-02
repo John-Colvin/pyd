@@ -25,160 +25,30 @@ matrix:
    - d: ldc-0.16.1
      env: TEST=runtests:test_extra
 
-  exclude:
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_hello
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_many_libs
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_arraytest
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_inherit
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_rawexample
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_testdll
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_multithreading
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_def
-   - d: dmd-2.067.1
-     env: TEST=runtests:test_d_and_c
-
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_hello
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_many_libs
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_arraytest
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_inherit
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_rawexample
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_testdll
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_multithreading
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_def
-   - d: dmd-2.066.1
-     env: TEST=runtests:test_d_and_c
-
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_hello
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_many_libs
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_arraytest
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_inherit
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_rawexample
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_testdll
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_multithreading
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_def
-   - d: ldc-0.16.1
-     env: TEST=runtests:test_d_and_c
-
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_hello
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_many_libs
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_arraytest
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_inherit
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_rawexample
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_testdll
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_multithreading
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_def
-   - d: ldc-0.15.1
-     env: TEST=runtests:test_d_and_c
-
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_hello
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_many_libs
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_arraytest
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_inherit
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_rawexample
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_testdll
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_multithreading
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_def
-   - d: gdc-4.9.2
-     env: TEST=runtests:test_d_and_c
-
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_hello
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_many_libs
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_arraytest
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_inherit
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_rawexample
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_testdll
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_multithreading
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_def
-   - d: gdc-5.2.0
-     env: TEST=runtests:test_d_and_c
-  
    - d: gdc-4.9.2
    - d: gdc-5.2.0
-   #- os: osx
-   #  d: gdc-4.9.2
-   #- os: osx
-   #  d: gdc-5.2.0
    - os: osx
-  env:
-   - ARCH=x86
-   - ARCH=x86_64
+     d: gdc-4.9.2
+   - os: osx
+     d: gdc-5.2.0
+
+env:
+ - ARCH=x86
+ - ARCH=x86_64
+
+env:
+ - TEST_PYTHON=python2
+ - TEST_PYTHON=python3
 
 addons:
   apt:
     packages:
      - python3
      - python
-     - python3-nose
-     - python-nose
      - python3-numpy
      - python-numpy
      - python-dev
      - python3-dev
-env:
-    - TEST=runtests:test_hello
-    - TEST=runtests:test_many_libs
-    - TEST=runtests:test_arraytest
-    - TEST=runtests:test_inherit
-    - TEST=runtests:test_rawexample
-    - TEST=runtests:test_testdll
-    - TEST=runtests:test_d_and_c
-    - TEST=runtests:test_multithreading
-    - TEST=runtests:PydUnittests
-    - TEST=runtests:test_extra
-    - TEST=runtests:DeimosUnittests
-    - TEST=runtests:test_pyind
-    - TEST=runtests:test_simple_embedded
-    - TEST=runtests:test_interpcontext
-    - TEST=runtests:test_def
-    - TEST=runtests:test_pydobject
 
-script: 
-    - python3 runtests.py --compiler=$DC $TEST
+script:
+  - cd examples && ./runAll.sh
