@@ -12,11 +12,11 @@ static this() {
 }
 // py_def
 unittest {
-    alias py_def!(
+    alias func1 = py_def!(
             "def func1(a):\n"
             " return a*2+1",
             "testing", 
-            int function(int)) func1;
+            int function(int));
     assert(func1(1) == 3);    
     assert(func1(2) == 5);    
     assert(func1(3) == 7);    
@@ -34,7 +34,7 @@ version(Python_3_0_Or_Later) {
         assert(py_eval!double("a", "testing") == 0);
         py_stmts(
                 "from __future__ import division\n"
-                "b = 3 / 4;"
+                ~ "b = 3 / 4;"
                 ,
                 "testing");
         assert(py_eval!double("b", "testing") == 0.75);
@@ -48,12 +48,12 @@ version(Python_3_0_Or_Later) {
         InterpContext c = new InterpContext();
         c.py_stmts(
                 "import testing\n"
-                "a = 3 / 4;"
+                ~ "a = 3 / 4;"
                 );
         assert(c.py_eval!double("a") == 0);
         c.py_stmts(
                 "from __future__ import division\n"
-                "b = 3 / 4;"
+                ~ "b = 3 / 4;"
                 );
         assert(c.py_eval!double("b") == 0.75);
         c.py_stmts(
@@ -71,27 +71,27 @@ unittest {
             "testing");
     py_stmts(
             "import testing\n"
-            "assert testing.a == \"doctor!\""
+            ~ "assert testing.a == \"doctor!\""
             );
 
     // however, py_stmts contextualized or without modulename does not.
 
     py_stmts(
             "import testing\n"
-            "a = \"nurse!\""
+            ~ "a = \"nurse!\""
             );
     py_stmts(
             "import testing\n"
-            "assert testing.a == \"doctor!\""
+            ~ "assert testing.a == \"doctor!\""
             );
     InterpContext c = new InterpContext();
     c.py_stmts(
             "import testing\n"
-            "a = \"nurse!\""
+            ~ "a = \"nurse!\""
             );
     py_stmts(
             "import testing\n"
-            "assert testing.a == \"doctor!\""
+            ~ "assert testing.a == \"doctor!\""
             );
 }
 
@@ -102,8 +102,8 @@ unittest {
     c.k = 4;
     c.py_stmts(
         "assert i == 1;"
-        "assert j == 2;"
-        "assert k == 4"
+        ~ "assert j == 2;"
+        ~ "assert k == 4"
         );
    // (*^&^&* broken @property
    // static assert(is(typeof(c.unicode("abc")) == PydObject));

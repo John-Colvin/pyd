@@ -85,8 +85,8 @@ void init_rangewrapper() {
 bool rangeWrapperInited = false;
 
 class to_conversion_wrapper(dg_t) {
-    alias ParameterTypeTuple!(dg_t)[0] T;
-    alias ReturnType!(dg_t) Intermediate;
+    alias T = ParameterTypeTuple!(dg_t)[0];
+    alias Intermediate = ReturnType!(dg_t);
     dg_t dg;
     this(dg_t fn) { dg = fn; }
     PyObject* opCall(T t) {
@@ -98,8 +98,8 @@ class to_conversion_wrapper(dg_t) {
     }
 }
 class from_conversion_wrapper(dg_t) {
-    alias ParameterTypeTuple!(dg_t)[0] Intermediate;
-    alias ReturnType!(dg_t) T;
+    alias Intermediate = ParameterTypeTuple!(dg_t)[0];
+    alias T = ReturnType!(dg_t);
     dg_t dg;
     this(dg_t fn) { dg = fn; }
     T opCall(PyObject* o) {
@@ -226,7 +226,7 @@ PyObject* d_to_python(T) (T t) {
         return t;
     } else static if (is(T == class)) {
         // Convert wrapped type to a PyObject*
-        alias Unqual!T Tu;
+        alias Tu = Unqual!T;
         // But only if it actually is a wrapped type. :-)
         PyTypeObject** type = Tu.classinfo in wrapped_classes;
         if (type) {
@@ -245,7 +245,7 @@ PyObject* d_to_python(T) (T t) {
             return d_to_python(wrap_range(t));
         }
     } else static if (is(T == struct)) {
-        alias Unqual!T Tu;
+        alias Tu = Unqual!T;
         if (is_wrapped!(Tu*)) {
             Tu* temp = new Tu;
             *temp = cast(Tu) t;
@@ -254,7 +254,7 @@ PyObject* d_to_python(T) (T t) {
         return d_to_python_try_extends(t);
     // If converting a struct by reference, wrap the thing directly
     } else static if (is(typeof(*t) == struct)) {
-        alias Unqual!T Tu;
+        alias Tu = Unqual!T;
         if (is_wrapped!(Tu)) {
             if (t is null) {
                 return Py_INCREF(Py_None());
@@ -290,7 +290,7 @@ PyObject* d_bigint_to_python(BigInt t) {
 }
 
 PyObject* d_string_to_python(T)(T t) if(isSomeString!T) {
-    alias Unqual!(typeof(T.init[0])) C;
+    alias C = Unqual!(typeof(T.init[0]));
     static if(is(C == char)) {
         return PyUnicode_DecodeUTF8(t.ptr, cast(Py_ssize_t) t.length, null);
     }else static if(is(C == wchar)) {
@@ -600,9 +600,9 @@ T python_to_d(T) (PyObject* o) {
         return python_to_d_string!T(o);
     } else static if (isArray!T || IsStaticArrayPointer!T) {
         static if(isPointer!T) {
-            alias Unqual!(ElementType!(pointerTarget!T)) E;
+            alias E = Unqual!(ElementType!(pointerTarget!T));
         }else {
-            alias Unqual!(ElementType!T) E;
+            alias E = Unqual!(ElementType!T);
         }
         version(Python_2_6_Or_Later) {
             if(PyObject_CheckBuffer(o)) {
@@ -720,7 +720,7 @@ T python_to_d_bigint(T) (PyObject* o) {
 }
 
 T python_to_d_string(T) (PyObject* o) {
-    alias Unqual!(typeof(T.init[0])) C;
+    alias C = Unqual!(typeof(T.init[0]));
     PyObject* str;
     if(PyBytes_Check(o)) {
         static if(is(C == char)) {
@@ -800,9 +800,9 @@ T python_to_d_string(T) (PyObject* o) {
 T python_array_array_to_d(T)(PyObject* o) 
 if(isArray!T || IsStaticArrayPointer!T) {
     static if(isPointer!T)
-        alias Unqual!(ElementType!(pointerTarget!T)) E;
+        alias E = Unqual!(ElementType!(pointerTarget!T));
     else
-        alias Unqual!(ElementType!T) E;
+        alias E = Unqual!(ElementType!T);
     if(o.ob_type !is array_array_Type)
         could_not_convert!T(o, "not an array.array");
     arrayobject* arr_o = cast(arrayobject*) o;
@@ -852,7 +852,7 @@ if((isArray!T || IsStaticArrayPointer!T) &&
         MatrixInfo!T.ndim == 1 &&
         SimpleFormatType!(MatrixInfo!T.MatrixElementType).supported) {
 
-    alias MatrixInfo!T.MatrixElementType ME;
+    alias ME = MatrixInfo!T.MatrixElementType;
     PyObject* pyformat = SimpleFormatType!ME.pyType();
     PyObject* args = PyTuple_New(1);
     PyTuple_SetItem(args, 0, pyformat);
@@ -886,9 +886,9 @@ PyObject* d_to_python_bytes(T)(T t) if(is(T == string)) {
   */
 T python_iter_to_d(T)(PyObject* o) if(isArray!T || IsStaticArrayPointer!T) {
     static if(isPointer!T)
-        alias Unqual!(ElementType!(pointerTarget!T)) E;
+        alias E = Unqual!(ElementType!(pointerTarget!T));
     else
-        alias Unqual!(ElementType!T) E;
+        alias E = Unqual!(ElementType!T);
     PyObject* iter = PyObject_GetIter(o);
     if (iter is null) {
         PyErr_Clear();
@@ -1007,7 +1007,7 @@ T python_buffer_to_d(T)(PyObject* o)
 if (isArray!T || IsStaticArrayPointer!T) {
     PydObject bob = new PydObject(borrowed(o));
     auto buf = bob.buffer_view();
-    alias MatrixInfo!T.MatrixElementType ME;
+    alias ME = MatrixInfo!T.MatrixElementType;
     MatrixInfo!T.unqual _array;
     /+
     if(buf.itemsize != ME.sizeof)
@@ -1028,7 +1028,7 @@ if (isArray!T || IsStaticArrayPointer!T) {
             static if(MatrixInfo!T.isRectArray && isStaticArray!T) {
                 memcpy(_array.ptr, buf.buf.ptr, buf.buf.length);
             }else{
-                alias MatrixInfo!T.RectArrayType RectArrayType;
+                alias RectArrayType = MatrixInfo!T.RectArrayType;
                 static if(!isStaticArray!(RectArrayType)) {
                     ubyte[] dbuf = new ubyte[](buf.buf.length);
                     memcpy(dbuf.ptr, buf.buf.ptr, buf.buf.length);
@@ -1178,7 +1178,7 @@ struct RangeWrapper {
 /// <a href='http://docs.python.org/library/struct.html#struct-format-strings'>
 /// Struct Format Strings </a>
 bool match_format_type(T)(string format) {
-    alias T S;
+    alias S = T;
     size_t S_size = S.sizeof;
     enforce(format.length > 0);
 
@@ -1320,23 +1320,23 @@ template MatrixInfo(T) if(isArray!T || IsStaticArrayPointer!T) {
 
     template _dim_list(T, dimi...) {
         static if(isSomeString!T) {
-            alias dimi list;
-            alias T elt;
-            alias Unqual!T unqual;
+            alias list = dimi;
+            alias elt = T;
+            alias unqual = Unqual!T;
         } else static if(isDynamicArray!T) {
-            alias _dim_list!(ElementType2!T, dimi,-1) next;
-            alias next.list list;
-            alias next.elt elt;
-            alias next.unqual[] unqual;
+            alias next = _dim_list!(ElementType2!T, dimi,-1);
+            alias list = next.list;
+            alias elt = next.elt;
+            alias unqual = next.unqual[];
         }else static if(isStaticArray!T) {
-            alias _dim_list!(ElementType2!T, dimi, cast(Py_ssize_t) T.length) next;
-            alias next.list list;
-            alias next.elt elt;
-            alias next.unqual[T.length] unqual;
+            alias next = _dim_list!(ElementType2!T, dimi, cast(Py_ssize_t) T.length);
+            alias list = next.list;
+            alias elt = next.elt;
+            alias unqual = next.unqual[T.length];
         }else {
-            alias dimi list;
-            alias T elt;
-            alias Unqual!T unqual;
+            alias list = dimi;
+            alias elt = T;
+            alias unqual = Unqual!T;
         }
     }
 
@@ -1437,18 +1437,18 @@ post_code = code to mix in to each for loop after finishing the nested for loop.
     }
 
     static if(isPointer!T && isStaticArray!(pointerTarget!T)) {
-        alias _dim_list!(pointerTarget!T) _dim;
+        alias _dim = _dim_list!(pointerTarget!T);
         /// T, with all nonmutable qualifiers stripped away.
-        alias _dim.unqual* unqual;
+        alias unqual = _dim.unqual*;
     }else{
-        alias _dim_list!T _dim;
-        alias _dim.unqual unqual;
+        alias _dim = _dim_list!T;
+        alias unqual = _dim.unqual;
     }
     /// tuple of dimensions of T.
     /// dim_list[0] will be the dimension furthest from the MatrixElementType
     /// i.e. for double[1][2][3], dim_list == (3, 2, 1).
     /// Lists -1 as dimension of dynamic arrays.
-    alias _dim.list dim_list;
+    alias dim_list = _dim.list;
     /// number of dimensions of this matrix
     enum ndim = dim_list.length;
     /// T is a RectArray if:
@@ -1466,18 +1466,18 @@ post_code = code to mix in to each for loop after finishing the nested for loop.
     enum size_t rectArrayAt = isRectArray ? 0 : dim_list.length - max(indexof_rev, 1);
     template _rect_type(S, size_t i) {
         static if(i == rectArrayAt) {
-            alias S _rect_type;
+            alias _rect_type = S;
         } else {
-            alias _rect_type!(ElementType!S, i+1) _rect_type;
+            alias _rect_type = _rect_type!(ElementType!S, i+1);
         }
     }
     /// unqualified highest dimension subtype of T forming RectArray
-    alias _rect_type!(unqual, 0) RectArrayType;
+    alias RectArrayType = _rect_type!(unqual, 0);
     /// Pretty string of dimension list for T
     enum string dimstring = tuple2string!(dim_list)();
     /// Matrix element type of T
     /// E.g. immutable(double) for T=immutable(double[4][4])
-    alias _dim.elt MatrixElementType;
+    alias MatrixElementType = _dim.elt;
 }
 
 @property PyTypeObject* array_array_Type() {
@@ -1490,7 +1490,7 @@ post_code = code to mix in to each for loop after finishing the nested for loop.
     return m_type;
 }
 
-alias python_to_d!(Object) python_to_d_Object;
+alias python_to_d_Object = python_to_d!(Object);
 
 void could_not_convert(T) (PyObject* o, string reason = "", 
         string file = __FILE__, size_t line = __LINE__) {

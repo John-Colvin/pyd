@@ -72,7 +72,7 @@ PyObject* d_to_python_numpy_ndarray(T)(T t)
 if((isArray!T || IsStaticArrayPointer!T) &&
         NumpyFormatType!(MatrixInfo!T.MatrixElementType).supported) {
     enforce(numpy_ndarray_Type(), "numpy is not available"); 
-    alias MatrixInfo!T.MatrixElementType ME;
+    alias ME = MatrixInfo!T.MatrixElementType;
     Py_ssize_t[] shape = MatrixInfo!T.build_shape(t);
     PyObject* pyshape = d_to_python(shape);
     PyObject* pyformat = NumpyFormatType!ME.pyType();

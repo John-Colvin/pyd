@@ -154,7 +154,7 @@ python = python statements
 
     @property void opDispatch(string id, T)(T t) {
         static if(is(T == PydObject)) {
-            alias t s;
+            alias s = t;
         }else{
             PydObject s = py(t);
         }
@@ -175,8 +175,8 @@ ReturnType!func_t py_def( string python, string modl, func_t)
     (ParameterTypeTuple!func_t args, 
      string file = __FILE__, size_t line = __LINE__) {
     //Note that type is really the only thing that need be static here, but hey.
-        alias ReturnType!func_t R;
-        alias ParameterTypeTuple!func_t Args;
+        alias R = ReturnType!func_t;
+        alias Args = ParameterTypeTuple!func_t;
     enum afterdef = findSplit(python, "def")[2];
     enum ereparen = findSplit(afterdef, "(")[0];
     enum name = strip(ereparen) ~ "\0";

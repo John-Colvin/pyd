@@ -1,5 +1,5 @@
 extern(C) shared bool _D2rt6dmain212_d_isHaltingOb;
-alias _D2rt6dmain212_d_isHaltingOb _d_isHalting;
+alias _d_isHalting = _D2rt6dmain212_d_isHaltingOb;
 extern(C) {
 
     void rt_init();

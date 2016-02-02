@@ -53,11 +53,11 @@ template Replace(string base, T...)
             static if(_at1 < _at0 || 
                     _at1 == _at0 && T[$-2].length > longest_spec.length)
             {
-                alias NextAt!(base, T[$-2], _at1, T.length-2,T[0 .. $-2]) N2;
+                alias N2 = NextAt!(base, T[$-2], _at1, T.length-2,T[0 .. $-2]);
             }
             else 
             {
-                alias NextAt!(base,longest_spec,_at0,_ti0,T[0 .. $-2]) N2;
+                alias N2 = NextAt!(base,longest_spec,_at0,_ti0,T[0 .. $-2]);
             }
             enum at = N2.at;
             enum ti = N2.ti;
@@ -65,7 +65,7 @@ template Replace(string base, T...)
     }
 
 
-    alias NextAt!(base,"",-1,-1,T) N;
+    alias N = NextAt!(base,"",-1,-1,T);
     static if(N.ti == -1)
         enum Replace = base;
     else

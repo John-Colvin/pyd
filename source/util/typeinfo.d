@@ -63,30 +63,30 @@ bool constCompatible(Constness c1, Constness c2) {
 }
 
 template ApplyConstness(T, Constness constness) {
-    alias Unqual!T Tu;
+    alias Tu = Unqual!T;
     static if(constness == Constness.Mutable) {
-        alias Tu ApplyConstness;
+        alias ApplyConstness = Tu;
     }else static if(constness == Constness.Const) {
-        alias const(Tu) ApplyConstness;
+        alias ApplyConstness = const(Tu);
     }else static if(constness == Constness.Wildcard) {
-        alias inout(Tu) ApplyConstness;
+        alias ApplyConstness = inout(Tu);
     }else static if(constness == Constness.Immutable) {
-        alias immutable(Tu) ApplyConstness;
+        alias ApplyConstness = immutable(Tu);
     }else {
         static assert(0);
     }
 }
 
 template ApplyConstness2(T, Constness constness) {
-    alias Unqual!T Tu;
+    alias Tu = Unqual!T;
     static if(constness == Constness.Mutable) {
-        alias Tu ApplyConstness2;
+        alias ApplyConstness2 = Tu;
     }else static if(constness == Constness.Const) {
-        alias const(Tu) ApplyConstness2;
+        alias ApplyConstness2 = const(Tu);
     }else static if(constness == Constness.Wildcard) {
-        alias Tu ApplyConstness2;
+        alias ApplyConstness2 = Tu;
     }else static if(constness == Constness.Immutable) {
-        alias immutable(Tu) ApplyConstness2;
+        alias ApplyConstness2 = immutable(Tu);
     }else {
         static assert(0);
     }
@@ -112,24 +112,24 @@ string attrs_to_string(uint attrs) {
 // what U should be so 'new U' returns a T
 template NewParamT(T) {
     static if(isPointer!T && is(PointerTarget!T == struct)) 
-        alias PointerTarget!T NewParamT;
-    else alias T NewParamT;
+        alias NewParamT = PointerTarget!T;
+    else alias NewParamT = T;
 }
 
 template StripSafeTrusted(F) {
     enum attrs = functionAttributes!F ; 
     enum desired_attrs = attrs & ~FunctionAttribute.safe & ~FunctionAttribute.trusted;
     enum linkage = functionLinkage!F;
-    alias SetFunctionAttributes!(F, linkage, desired_attrs) unqual_F;
+    alias unqual_F = SetFunctionAttributes!(F, linkage, desired_attrs);
     static if(isFunctionPointer!F) {
         enum constn = constness!(pointerTarget!F);
-        alias ApplyConstness!(pointerTarget!unqual_F, constn)* StripSafeTrusted;
+        alias StripSafeTrusted = ApplyConstness!(pointerTarget!unqual_F, constn)*;
     }else static if(isDelegate!F) {
         enum constn = constness!(F);
-        alias ApplyConstness!(unqual_F, constn) StripSafeTrusted;
+        alias StripSafeTrusted = ApplyConstness!(unqual_F, constn);
     }else{
         enum constn = constness!(F);
-        alias ApplyConstness!(unqual_F, constn) StripSafeTrusted;
+        alias StripSafeTrusted = ApplyConstness!(unqual_F, constn);
     }
 
 

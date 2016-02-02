@@ -1,12 +1,12 @@
 
 struct PyObject{ }
 
-extern(C) alias PyObject* function(PyObject*) PyFun1;
-extern(C) alias PyObject* function(PyObject*, PyObject*) PyFun2;
-extern(C) alias PyObject* function(long) PyLFun1;
-extern(C) alias PyObject* function(ulong) PyLUFun1;
-extern(C) alias PyObject* function(const(char)* buf, size_t len) PyStrFun1;
-extern(C) alias PyObject* function(const(char)* str) PyStrFun2;
+extern(C) alias PyFun1 = PyObject* function(PyObject*);
+extern(C) alias PyFun2 = PyObject* function(PyObject*, PyObject*);
+extern(C) alias PyLFun1 = PyObject* function(long);
+extern(C) alias PyLUFun1 = PyObject* function(ulong);
+extern(C) alias PyStrFun1 = PyObject* function(const(char)* buf, size_t len);
+extern(C) alias PyStrFun2 = PyObject* function(const(char)* str);
 
 struct Funs{
     static __gshared:
@@ -25,7 +25,7 @@ extern(C) int pyd_reg_fun(char* _fnom, PyFun1 somefun) {
     import std.typetuple;
     import std.stdio;
     string fnom = to!string(_fnom);
-    alias TypeTuple!(__traits(allMembers, Funs)) Fields;
+    alias Fields = TypeTuple!(__traits(allMembers, Funs));
     foreach(i,_; Fields) {
         enum string nom = _;
         if(nom == fnom) {

@@ -74,9 +74,9 @@ unittest {
     if(numpy) {
         py_stmts(
                 "from numpy import eye, ndarray\n"
-                "a = eye(4,k=1)\n"
-                "b = eye(3,4)\n"
-                "f = ndarray(shape=[3,4], buffer=b, order='F')\n"
+                ~ "a = eye(4,k=1)\n"
+                ~ "b = eye(3,4)\n"
+                ~ "f = ndarray(shape=[3,4], buffer=b, order='F')\n"
                 ,
                 "testing");
         assert(py_eval!(double[][])("a","testing") == 
@@ -162,17 +162,17 @@ unittest {
 
 // tests on MatrixInfo utility template
 unittest {
-    alias MatrixInfo!(double[][]) M1;
+    alias M1 = MatrixInfo!(double[][]);
     static assert(M1.ndim == 2);
     static assert(M1.dimstring == "[*,*]");
     static assert(is(M1.unqual == double[][]));
     static assert(is(M1.MatrixElementType == double));
-    alias MatrixInfo!(const(double[4][5])) M2;
+    alias M2 = MatrixInfo!(const(double[4][5]));
     static assert(M2.ndim == 2);
     static assert(M2.dimstring == "[5,4]");
     static assert(is(M2.unqual == double[4][5]));
     static assert(is(M2.MatrixElementType == const(double)));
-    alias MatrixInfo!(string[4][5]) M3;
+    alias M3 = MatrixInfo!(string[4][5]);
     static assert(M3.ndim == 2);
     static assert(M3.dimstring == "[5,4]");
     static assert(is(M3.unqual == string[4][5]));
@@ -211,14 +211,14 @@ unittest {
 // test arbirary ranges
 unittest{
     auto z = (iota(10));
-    alias typeof(z) Z;
-    alias py_def!(
+    alias Z = typeof(z) ;
+    alias Foo1 = py_def!(
             "def foozit(a):\n"
             " import itertools\n"
             " b = list(itertools.islice(a, 0, 2))\n"
             " return b,a"
             ,
-            "testing", Tuple!(int[],Z) function(Z)) Foo1;
+            "testing", Tuple!(int[],Z) function(Z));
     auto t = Foo1(z);
     auto ix = t[0];
     z = t[1];
@@ -465,14 +465,14 @@ unittest {
         }
     }
     static if(!__traits(compiles, {
-                alias unaryFun!"a.i" uConv;
-                alias uConv!(G1!"martin") mConv;
+                alias uConv = unaryFun!"a.i";
+                alias mConv = uConv!(G1!"martin");
                 })) {
         import std.stdio;
         writeln("Can't run this unit test due to dmd issue 12426");
     }else {
-        alias unaryFun!"a.i" uConv;
-        alias uConv!(G1!"martin") mConv;
+        alias uConv = unaryFun!"a.i";
+        alias mConv = uConv!(G1!"martin");
 
         ex_d_to_python(delegate int(G1!"fred" g){ return g.i; });
         ex_d_to_python(function int(G1!"steve" g){ return g.i; });

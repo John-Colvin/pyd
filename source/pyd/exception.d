@@ -121,9 +121,9 @@ T exception_catcher_nogc(T) (T delegate() dg) {
     }
 }
 
-alias exception_catcher!(PyObject*) exception_catcher_PyObjectPtr;
-alias exception_catcher!(int) exception_catcher_int;
-alias exception_catcher!(void) exception_catcher_void;
+alias exception_catcher_PyObjectPtr = exception_catcher!(PyObject*);
+alias exception_catcher_int = exception_catcher!(int);
+alias exception_catcher_void = exception_catcher!(void);
 
 string printSyntaxError(PyObject* type, PyObject* value, PyObject* traceback) {
     if(value is null) return "";

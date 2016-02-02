@@ -42,22 +42,22 @@ import pyd.make_object;
 // _lop.C is a tuple w length 0 or 1 containing a BinaryOperatorX instance.
 // same for _rop.C.
 template binop_wrap(T, _lop, _rop) {
-    alias _lop.C lop;
-    alias _rop.C rop;
-    alias PydTypeObject!T wtype;
+    alias lop = _lop.C;
+    alias rop = _rop.C;
+    alias wtype = PydTypeObject!T;
     static if(lop.length) {
-        alias lop[0] lop0;
-        alias lop0.Inner!T.FN lfn;
-        alias dg_wrapper!(T, typeof(&lfn)) get_dgl;
-        alias ParameterTypeTuple!(lfn)[0] LOtherT;
-        alias ReturnType!(lfn) LRet;
+        alias lop0 = lop[0];
+        alias lfn = lop0.Inner!T.FN;
+        alias get_dgl = dg_wrapper!(T, typeof(&lfn));
+        alias LOtherT = ParameterTypeTuple!(lfn)[0];
+        alias LRet = ReturnType!(lfn);
     }
     static if(rop.length) {
-        alias rop[0] rop0;
-        alias rop0.Inner!T.FN rfn;
-        alias dg_wrapper!(T, typeof(&rfn)) get_dgr;
-        alias ParameterTypeTuple!(rfn)[0] ROtherT;
-        alias ReturnType!(rfn) RRet;
+        alias rop0 = rop[0];
+        alias rfn = rop0.Inner!T.FN;
+        alias get_dgr = dg_wrapper!(T, typeof(&rfn));
+        alias ROtherT = ParameterTypeTuple!(rfn)[0];
+        alias RRet = ReturnType!(rfn);
     }
     enum mode = (lop.length?"l":"")~(rop.length?"r":"");
     extern(C)
@@ -110,10 +110,10 @@ rop:
 }
 
 template binopasg_wrap(T, alias fn) {
-    alias PydTypeObject!T wtype;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
-    alias ParameterTypeTuple!(fn)[0] OtherT;
-    alias ReturnType!(fn) Ret;
+    alias wtype = PydTypeObject!T;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
+    alias OtherT = ParameterTypeTuple!(fn)[0];
+    alias Ret = ReturnType!(fn);
 
     extern(C)
     PyObject* func(PyObject* self, PyObject* o2) {
@@ -129,22 +129,22 @@ template binopasg_wrap(T, alias fn) {
 
 // pow is special. its stupid slot is a ternary function.
 template powop_wrap(T, _lop, _rop) {
-    alias _lop.C lop;
-    alias _rop.C rop;
-    alias PydTypeObject!T wtype;
+    alias lop = _lop.C;
+    alias rop = _rop.C;
+    alias wtype = PydTypeObject!T;
     static if(lop.length) {
-        alias lop[0] lop0;
-        alias lop0.Inner!T.FN lfn;
-        alias dg_wrapper!(T, typeof(&lfn)) get_dgl;
-        alias ParameterTypeTuple!(lfn)[0] LOtherT;
-        alias ReturnType!(lfn) LRet;
+        alias lop0 = lop[0];
+        alias lfn = lop0.Inner!T.FN;
+        alias get_dgl = dg_wrapper!(T, typeof(&lfn));
+        alias LOtherT = ParameterTypeTuple!(lfn)[0];
+        alias LRet = ReturnType!(lfn);
     }
     static if(rop.length) {
-        alias rop[0] rop0;
-        alias rop0.Inner!T.FN rfn;
-        alias dg_wrapper!(T, typeof(&rfn)) get_dgr;
-        alias ParameterTypeTuple!(rfn)[0] ROtherT;
-        alias ReturnType!(rfn) RRet;
+        alias rop0 = rop[0];
+        alias rfn = rop0.Inner!T.FN;
+        alias get_dgr = dg_wrapper!(T, typeof(&rfn));
+        alias ROtherT = ParameterTypeTuple!(rfn)[0];
+        alias RRet = ReturnType!(rfn);
     }
     enum mode = (lop.length?"l":"")~(rop.length?"r":"");
     extern(C)
@@ -189,10 +189,10 @@ rop:
 }
 
 template powopasg_wrap(T, alias fn) {
-    alias PydTypeObject!T wtype;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
-    alias ParameterTypeTuple!(fn)[0] OtherT;
-    alias ReturnType!(fn) Ret;
+    alias wtype = PydTypeObject!T;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
+    alias OtherT = ParameterTypeTuple!(fn)[0];
+    alias Ret = ReturnType!(fn);
 
     extern(C)
     PyObject* func(PyObject* self, PyObject* o2, PyObject* o3) {
@@ -210,10 +210,10 @@ template opcall_wrap(T, alias fn) {
     static assert(constCompatible(constness!T, constness!(typeof(fn))), 
             format("constness mismatch instance: %s function: %s", 
                 T.stringof, typeof(fn).stringof));
-    alias PydTypeObject!T wtype;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
-    alias ParameterTypeTuple!(fn)[0] OtherT;
-    alias ReturnType!(fn) Ret;
+    alias wtype = PydTypeObject!T;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
+    alias OtherT = ParameterTypeTuple!(fn)[0];
+    alias Ret = ReturnType!(fn);
 
     extern(C)
     PyObject* func(PyObject* self, PyObject* args, PyObject* kwargs) {
@@ -247,10 +247,10 @@ template opfunc_unary_wrap(T, alias opfn) {
 }
 
 template opiter_wrap(T, alias fn){
-    alias ParameterTypeTuple!fn params;
+    alias params = ParameterTypeTuple!fn;
     extern(C)
     PyObject* func(PyObject* self) {
-        alias memberfunc_to_func!(T,fn).func func;
+        alias func = memberfunc_to_func!(T,fn).func;
         return exception_catcher(delegate PyObject*() {
             T t = python_to_d!T(self);
             auto dg = dg_wrapper(t, &fn);
@@ -260,13 +260,13 @@ template opiter_wrap(T, alias fn){
 }
 
 template opindex_wrap(T, alias fn) {
-    alias ParameterTypeTuple!fn Params;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
+    alias Params = ParameterTypeTuple!fn;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
 
     // Multiple arguments are converted into tuples, and thus become a standard
     // wrapped member function call. A single argument is passed directly.
     static if (Params.length == 1) {
-        alias Params[0] KeyT;
+        alias KeyT = Params[0];
         extern(C)
         PyObject* func(PyObject* self, PyObject* key) {
             return exception_catcher(delegate PyObject*() {
@@ -275,7 +275,7 @@ template opindex_wrap(T, alias fn) {
             });
         }
     } else {
-        alias method_dgwrap!(T, fn) opindex_methodT;
+        alias opindex_methodT = method_dgwrap!(T, fn);
         extern(C)
         PyObject* func(PyObject* self, PyObject* key) {
             Py_ssize_t args;
@@ -294,10 +294,10 @@ template opindex_wrap(T, alias fn) {
 }
 
 template opindexassign_wrap(T, alias fn) {
-    alias ParameterTypeTuple!(fn) Params;
+    alias Params = ParameterTypeTuple!(fn);
 
     static if (Params.length > 2) {
-        alias method_dgwrap!(T, fn) fn_wrap;
+        alias fn_wrap = method_dgwrap!(T, fn);
         extern(C)
         int func(PyObject* self, PyObject* key, PyObject* val) {
             Py_ssize_t args;
@@ -323,9 +323,9 @@ template opindexassign_wrap(T, alias fn) {
             return 0;
         }
     } else {
-        alias dg_wrapper!(T, typeof(&fn)) get_dg;
-        alias Params[0] ValT;
-        alias Params[1] KeyT;
+        alias get_dg = dg_wrapper!(T, typeof(&fn));
+        alias ValT = Params[0];
+        alias KeyT = Params[1];
 
         extern(C)
         int func(PyObject* self, PyObject* key, PyObject* val) {
@@ -339,12 +339,12 @@ template opindexassign_wrap(T, alias fn) {
 }
 
 template inop_wrap(T, _lop, _rop) {
-    alias _rop.C rop;
+    alias rop = _rop.C;
     static if(rop.length) {
-        alias rop[0] rop0;
-        alias rop0.Inner!T.FN rfn;
-        alias dg_wrapper!(T, typeof(&rfn)) get_dgr;
-        alias ParameterTypeTuple!(rfn)[0] ROtherT;
+        alias rop0 = rop[0];
+        alias rfn = rop0.Inner!T.FN;
+        alias get_dgr = dg_wrapper!(T, typeof(&rfn));
+        alias ROtherT = ParameterTypeTuple!(rfn)[0];
     }
     
     extern(C)
@@ -360,8 +360,8 @@ template opcmp_wrap(T, alias fn) {
     static assert(constCompatible(constness!T, constness!(typeof(fn))), 
             format("constness mismatch instance: %s function: %s", 
                 T.stringof, typeof(fn).stringof));
-    alias ParameterTypeTuple!(fn) Info;
-    alias Info[0] OtherT;
+    alias Info = ParameterTypeTuple!(fn);
+    alias OtherT = Info[0];
     extern(C)
     int func(PyObject* self, PyObject* other) {
         return exception_catcher(delegate int() {
@@ -381,9 +381,9 @@ template rich_opcmp_wrap(T, alias fn) {
     static assert(constCompatible(constness!T, constness!(typeof(fn))), 
             format("constness mismatch instance: %s function: %s", 
                 T.stringof, typeof(fn).stringof));
-    alias ParameterTypeTuple!(fn) Info;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
-    alias Info[0] OtherT;
+    alias Info = ParameterTypeTuple!(fn);
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
+    alias OtherT = Info[0];
     extern(C)
     PyObject* func(PyObject* self, PyObject* other, int op) {
         return exception_catcher(delegate PyObject*() {
@@ -423,7 +423,7 @@ template rich_opcmp_wrap(T, alias fn) {
 // Dispatch //
 //----------//
 template length_wrap(T, alias fn) {
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
     extern(C)
     Py_ssize_t func(PyObject* self) {
         return exception_catcher(delegate Py_ssize_t() {
@@ -434,7 +434,7 @@ template length_wrap(T, alias fn) {
 }
 
 template opslice_wrap(T,alias fn) {
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
     extern(C)
     PyObject* func(PyObject* self, Py_ssize_t i1, Py_ssize_t i2) {
         return exception_catcher(delegate PyObject*() {
@@ -445,9 +445,9 @@ template opslice_wrap(T,alias fn) {
 }
 
 template opsliceassign_wrap(T, alias fn) {
-    alias ParameterTypeTuple!fn Params;
-    alias Params[0] AssignT;
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
+    alias Params = ParameterTypeTuple!fn;
+    alias AssignT = Params[0];
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
 
     extern(C)
     int func(PyObject* self, Py_ssize_t i1, Py_ssize_t i2, PyObject* o) {

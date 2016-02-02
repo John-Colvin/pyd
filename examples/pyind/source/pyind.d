@@ -56,11 +56,11 @@ void main() {
     >", "office");
 
     // functions can be defined in Python and invoked in D
-    alias py_def!(
+    alias call_out = py_def!(
         "def holler(a): 
             return ' '.join(['Doctor!']*a)",
         "office", 
-        string function(int)) call_out;
+        string function(int));
 
     writeln(call_out(1));
     writeln(call_out(5));

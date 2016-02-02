@@ -83,7 +83,7 @@ template OverloadShim() {
             "$realname", realname));
     }
     int __pyd_apply_wrapper(dg_t) (dg_t dg) {
-        alias ParameterTypeTuple!(dg_t)[0] arg_t;
+        alias arg_t = ParameterTypeTuple!(dg_t)[0];
         const uint args = ParameterTypeTuple!(dg_t).length;
         PyObject* _pyobj = this.__pyd_get_pyobj();
         if (_pyobj !is null) {

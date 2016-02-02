@@ -58,7 +58,7 @@ template shim_class(T) {
 
 // kill
 template wrapped_class_object(T) {
-    alias PyObject wrapped_class_object;
+    alias wrapped_class_object = PyObject;
 }
 
 void init_PyTypeObject(T)(ref PyTypeObject tipo) {
@@ -120,7 +120,7 @@ template wrapped_repr(T, alias fn) {
     static assert(constCompatible(constness!T, constness!(typeof(fn))), 
             format("constness mismatch instance: %s function: %s", 
                 T.stringof, typeof(fn).stringof));
-    alias dg_wrapper!(T, typeof(&fn)) get_dg;
+    alias get_dg = dg_wrapper!(T, typeof(&fn));
     /// The default repr method calls the class's toString.
     extern(C)
     PyObject* repr(PyObject* self) {
@@ -131,8 +131,8 @@ template wrapped_repr(T, alias fn) {
     }
 }
 
-private template ID(A){ alias A ID; }
-private struct CW(A...){ alias A C; }
+private template ID(A){ alias ID = A; }
+private struct CW(A...){ alias C = A; }
 
 template IsProperty(alias T) {
     enum bool IsProperty = 
@@ -158,11 +158,11 @@ template IsAnySetter(alias T) {
 // getter form and the setter form. It requires that the getter form return the
 // same type that the setter form accepts.
 struct property_parts(alias p, string _mode) {
-    alias ID!(__traits(parent, p)) Parent;
+    alias Parent = ID!(__traits(parent, p));
     enum nom = __traits(identifier, p);
-    alias TypeTuple!(__traits(getOverloads, Parent, nom)) Overloads;
+    alias Overloads = TypeTuple!(__traits(getOverloads, Parent, nom));
     static if(_mode == "" || countUntil(_mode, "r") != -1) {
-        alias Filter!(IsGetter,Overloads) Getters;
+        alias Getters = Filter!(IsGetter,Overloads);
         static if(_mode == "" && Getters.length == 0) {
             enum isgproperty = false;
             enum rmode = "";
@@ -174,8 +174,8 @@ struct property_parts(alias p, string _mode) {
             static assert(Getters.length == 1, 
                     format!("can't handle property overloads of %s.%s getter (types %s)", 
                         Parent.stringof, nom, staticMap!(ReturnType,Getters).stringof));
-            alias Getters[0] GetterFn;
-            alias typeof(&GetterFn) getter_type;
+            alias GetterFn = Getters[0];
+            alias getter_type = typeof(&GetterFn) ;
             enum isgproperty = IsProperty!GetterFn;
             enum rmode = "r";
         }
@@ -186,9 +186,9 @@ struct property_parts(alias p, string _mode) {
     //enum bool pred1 = _mode == "" || countUntil(_mode, "w") != -1;
     static if(_mode == "" || countUntil(_mode, "w") != -1) {
         static if(rmode == "r") {
-            alias Filter!(IsSetter!(ReturnType!getter_type), Overloads) Setters;
+            alias Setters = Filter!(IsSetter!(ReturnType!getter_type), Overloads);
         }else {
-            alias Filter!(IsAnySetter, Overloads) Setters;
+            alias Setters = Filter!(IsAnySetter, Overloads);
         }
 
         //enum bool pred2 = _mode == "" && Setters.length == 0;
@@ -200,8 +200,8 @@ struct property_parts(alias p, string _mode) {
             static assert(Setters.length == 1, 
                 format("can't handle property overloads of %s.%s setter %s", 
                     Parent.stringof, nom, Setters.stringof));
-            alias Setters[0] SetterFn;
-            alias typeof(&SetterFn) setter_type;
+            alias SetterFn = Setters[0];
+            alias setter_type = typeof(&SetterFn) ;
             static if(rmode == "r") {
                 static assert(!(IsProperty!GetterFn ^ IsProperty!(Setters[0])), 
                         format("%s.%s: getter and setter must both be @property or not @property", 
@@ -216,9 +216,9 @@ struct property_parts(alias p, string _mode) {
     }
 
     static if(rmode != "") {
-        alias ReturnType!(GetterFn) Type;
+        alias Type = ReturnType!(GetterFn);
     }else static if(wmode != "") {
-        alias ParameterTypeTuple!(SetterFn)[0] Type;
+        alias Type = ParameterTypeTuple!(SetterFn)[0];
     }
 
     enum mode = rmode ~ wmode;
@@ -281,17 +281,17 @@ fn's name in D
 docstring = The function's docstring. Defaults to "".
 */
 struct Def(alias fn, Options...) {
-    alias Args!("","", __traits(identifier,fn), "",Options) args;
+    alias args = Args!("","", __traits(identifier,fn), "",Options);
     static if(args.rem.length) {
-        alias args.rem[0] fn_t;
+        alias fn_t = args.rem[0];
     }else {
-        alias typeof(&fn) fn_t;
+        alias fn_t = typeof(&fn) ;
     }
     mixin _Def!(fn, args.pyname, fn_t, args.docstring);
 }
 
 template _Def(alias _fn, string name, fn_t, string docstring) {
-    alias def_selector!(_fn,fn_t).FN func;
+    alias func = def_selector!(_fn,fn_t).FN;
     static assert(!__traits(isStaticFunction, func)); // TODO
     static assert((functionAttributes!fn_t & (
                     FunctionAttribute.nothrow_| 
@@ -299,16 +299,16 @@ template _Def(alias _fn, string name, fn_t, string docstring) {
                     FunctionAttribute.trusted|
                     FunctionAttribute.safe)) == 0, 
             "pyd currently does not support pure, nothrow, @trusted, or @safe member functions");
-    alias /*StripSafeTrusted!*/fn_t func_t;
+    alias /*StripSafeTrusted!*/func_t = fn_t;
     enum realname = __traits(identifier,func);
     enum funcname = name;
     enum min_args = minArgs!(func);
     enum bool needs_shim = false;
 
     static void call(string classname, T) () {
-        alias ApplyConstness!(T, constness!(typeof(func))) cT;
+        alias cT = ApplyConstness!(T, constness!(typeof(func)));
         static PyMethodDef empty = { null, null, 0, null };
-        alias wrapped_method_list!(T) list;
+        alias list = wrapped_method_list!(T);
         list[$-1].ml_name = (name ~ "\0").ptr;
         list[$-1].ml_meth = cast(PyCFunction) &method_wrap!(cT, func, classname ~ "." ~ name).func;
         list[$-1].ml_flags = METH_VARARGS | METH_KEYWORDS;
@@ -350,25 +350,25 @@ name in D.
 docstring = The function's docstring. Defaults to "".
 */
 struct StaticDef(alias fn, Options...) {
-    alias Args!("","", __traits(identifier,fn), "",Options) args;
+    alias args = Args!("","", __traits(identifier,fn), "",Options);
     static if(args.rem.length) {
-        alias args.rem[0] fn_t;
+        alias fn_t = args.rem[0];
     }else {
-        alias typeof(&fn) fn_t;
+        alias fn_t = typeof(&fn) ;
     }
     mixin _StaticDef!(fn, args.pyname, fn_t, args.docstring);
 }
 
 mixin template _StaticDef(alias fn, string name, fn_t, string docstring) {
-    alias def_selector!(fn,fn_t).FN func;
+    alias func = def_selector!(fn,fn_t).FN;
     static assert(__traits(isStaticFunction, func)); // TODO
-    alias /*StripSafeTrusted!*/fn_t func_t;
+    alias /*StripSafeTrusted!*/func_t = fn_t;
     enum funcname = name;
     enum bool needs_shim = false;
     static void call(string classname, T) () {
         //pragma(msg, "class.static_def: " ~ name);
         static PyMethodDef empty = { null, null, 0, null };
-        alias wrapped_method_list!(T) list;
+        alias list = wrapped_method_list!(T);
         list[$-1].ml_name = (name ~ "\0").ptr;
         list[$-1].ml_meth = cast(PyCFunction) &function_wrap!(func, classname ~ "." ~ name).func;
         list[$-1].ml_flags = METH_VARARGS | METH_STATIC | METH_KEYWORDS;
@@ -397,13 +397,13 @@ to "".
 docstring = The function's docstring. Defaults to "".
 */
 struct Property(alias fn, Options...) {
-    alias Args!("","", __traits(identifier,fn), "",Options) args;
+    alias args = Args!("","", __traits(identifier,fn), "",Options);
     static assert(args.rem.length == 0, "Propery takes no other parameter");
     mixin _Property!(fn, args.pyname, args.mode, args.docstring);
 }
 
 template _Property(alias fn, string pyname, string _mode, string docstring) {
-    alias property_parts!(fn, _mode) parts;
+    alias parts = property_parts!(fn, _mode);
     //pragma(msg, "property: ", parts.nom);
     static if(parts.isproperty) {
         mixin _Member!(parts.nom, pyname, parts.mode, docstring, parts);
@@ -413,10 +413,10 @@ template _Property(alias fn, string pyname, string _mode, string docstring) {
         }
     }else {
         static if(countUntil(parts.mode,"r") != -1) {
-            alias parts.getter_type get_t;
+            alias get_t = parts.getter_type;
         }
         static if(countUntil(parts.mode,"w") != -1) {
-            alias parts.setter_type set_t;
+            alias set_t = parts.setter_type;
         }
         enum realname = __traits(identifier, fn);
         enum funcname = pyname;
@@ -425,14 +425,12 @@ template _Property(alias fn, string pyname, string _mode, string docstring) {
             static PyGetSetDef empty = { null, null, null, null, null };
             wrapped_prop_list!(T)[$-1].name = (pyname ~ "\0").dup.ptr;
             static if (countUntil(parts.mode, "r") != -1) {
-                alias ApplyConstness!(T, constness!(typeof(parts.GetterFn))) 
-                    cT_g;
+                alias cT_g = ApplyConstness!(T, constness!(typeof(parts.GetterFn)));
                 wrapped_prop_list!(T)[$-1].get =
                     &wrapped_get!(classname ~ "." ~ pyname, cT_g, parts).func;
             }
             static if (countUntil(parts.mode, "w") != -1) {
-                alias ApplyConstness!(T, constness!(typeof(parts.SetterFn))) 
-                    cT_s;
+                alias cT_s = ApplyConstness!(T, constness!(typeof(parts.SetterFn)));
                 wrapped_prop_list!(T)[$-1].set =
                     &wrapped_set!(classname ~ "." ~ pyname,cT_s, parts).func;
             }
@@ -479,11 +477,11 @@ Params:
 fn = The property to wrap. Must have the signature string function().
 */
 struct Repr(alias _fn) {
-    alias def_selector!(_fn, string function()).FN fn;
+    alias fn = def_selector!(_fn, string function()).FN;
     enum bool needs_shim = false;
     static void call(string classname, T)() {
-        alias ApplyConstness!(T, constness!(typeof(fn))) cT;
-        alias PydTypeObject!(T) type;
+        alias cT = ApplyConstness!(T, constness!(typeof(fn)));
+        alias type = PydTypeObject!(T);
         type.tp_repr = &wrapped_repr!(cT, fn).repr;
     }
     template shim(size_t i,T) {
@@ -510,23 +508,23 @@ This currently does not support having multiple constructors with
 the same number of arguments.
 */
 struct Init(cps ...) {
-    alias cps CtorParams;
+    alias CtorParams = cps;
     enum bool needs_shim = false;
     template Inner(T) {
-        alias NewParamT!T BaseT;
-        alias TypeTuple!(__traits(getOverloads, BaseT, "__ctor")) Overloads;
+        alias BaseT = NewParamT!T;
+        alias Overloads = TypeTuple!(__traits(getOverloads, BaseT, "__ctor"));
         template IsDesired(alias ctor) {
-            alias ParameterTypeTuple!ctor ps;
+            alias ps = ParameterTypeTuple!ctor;
             enum bool IsDesired = is(ps == CtorParams);
         }
-        alias Filter!(IsDesired, Overloads) VOverloads;
+        alias VOverloads = Filter!(IsDesired, Overloads);
         static assert(VOverloads.length != 0, 
                 format("%s: Cannot find constructor with params %s", 
                     T.stringof, CtorParams.stringof));
-        alias VOverloads[0] FN;
+        alias FN = VOverloads[0];
 
-        alias ParameterTypeTuple!FN Pt;
-        alias ParameterDefaultValueTuple!FN Pd;
+        alias Pt = ParameterTypeTuple!FN;
+        alias Pd = ParameterDefaultValueTuple!FN;
     }
     static void call(string classname, T)() {
     }
@@ -534,7 +532,7 @@ struct Init(cps ...) {
         enum params = getparams!(Inner!T.FN,
                 format("__pyd_p%s.Inner!T.Pt",i),
                 format("__pyd_p%s.Inner!T.Pd",i));
-        alias ParameterIdentifierTuple!(Inner!T.FN) paramids;
+        alias paramids = ParameterIdentifierTuple!(Inner!T.FN);
         enum shim = Replace!(q{
             alias Params[$i] __pyd_p$i;
             this($params) {
@@ -642,11 +640,11 @@ struct BinaryOperatorX(string _op, bool isR, rhs_t) {
                     "binary operator overloads");
         }
         template Alias(alias fn) {
-            alias fn Alias;
+            alias Alias = fn;
         }
         static if(is(typeof(mixin(fn_str1)) == function)) {
-            alias ParameterTypeTuple!(typeof(mixin(fn_str1)))[0] RHS_T;
-            alias ReturnType!(typeof(mixin(fn_str1))) RET_T;
+            alias RHS_T = ParameterTypeTuple!(typeof(mixin(fn_str1)))[0];
+            alias RET_T = ReturnType!(typeof(mixin(fn_str1)));
             mixin("alias " ~ fn_str1 ~ " FN;");
             static if(!is(rhs_t == Guess))
                 static assert(is(RHS_T == rhs_t), 
@@ -656,8 +654,8 @@ struct BinaryOperatorX(string _op, bool isR, rhs_t) {
             static assert(false, 
                     format("Operator %s: Cannot determine type of rhs", op));
         } else static if(is(typeof(mixin(fn_str2)) == function)) {
-            alias rhs_t RHS_T;
-            alias ReturnType!(typeof(mixin(fn_str2))) RET_T;
+            alias RHS_T = rhs_t;
+            alias RET_T = ReturnType!(typeof(mixin(fn_str2)));
             mixin("alias "~fn_str2~" FN;");
         } else static assert(false, "Cannot get operator overload");
     }
@@ -700,12 +698,12 @@ Bugs:
     Issue 8602 prevents disambiguation for case X opBinary(string op, T)(T t);
   */
 template OpBinary(string op, rhs_t = Guess) if(IsPyBinary(op) && op != "in"){
-    alias BinaryOperatorX!(op, false, rhs_t) OpBinary;
+    alias OpBinary = BinaryOperatorX!(op, false, rhs_t);
 }
 
 /// ditto
 template OpBinaryRight(string op, lhs_t = Guess) if(IsPyBinary(op)) {
-    alias BinaryOperatorX!(op, true, lhs_t) OpBinaryRight;
+    alias OpBinaryRight = BinaryOperatorX!(op, true, lhs_t);
 }
 
 /**
@@ -721,12 +719,12 @@ struct OpUnary(string _op) if(IsPyUnary(_op)) {
             static assert(0, C.stringof ~ " has no unary operator overloads");
         }
         static if(is(typeof(C.init.opUnary!(op)) == function)) {
-            alias ReturnType!(C.opUnary!(op)) RET_T;
-            alias C.opUnary!(op) FN;
+            alias RET_T = ReturnType!(C.opUnary!(op));
+            alias FN = C.opUnary!(op);
         } else static assert(false, "Cannot get operator overload");
     }
     static void call(string classname, T)() {
-        alias PydTypeObject!T type;
+        alias type = PydTypeObject!T;
         enum slot = unaryslots[op];
         mixin(autoInitializeMethods());
         mixin(slot ~ " = &opfunc_unary_wrap!(T, Inner!T .FN).func;");
@@ -768,9 +766,9 @@ struct OpAssign(string _op, rhs_t = Guess) if(IsPyAsg(_op)) {
             static assert(0, C.stringof ~ " has no operator assignment overloads");
         }
         static if(is(typeof(C.init.opOpAssign!(_op)) == function)) {
-            alias ParameterTypeTuple!(typeof(C.opOpAssign!(_op)))[0] RHS_T;
-            alias ReturnType!(typeof(C.opOpAssign!(_op))) RET_T;
-            alias C.opOpAssign!(_op) FN;
+            alias RHS_T = ParameterTypeTuple!(typeof(C.opOpAssign!(_op)))[0];
+            alias RET_T = ReturnType!(typeof(C.opOpAssign!(_op)));
+            alias FN = C.opOpAssign!(_op);
             static if(!is(rhs_t == Guess))
                 static assert(is(RHS_T == rhs_t), 
                         format("expected typeof(rhs) = %s, found %s", 
@@ -778,17 +776,17 @@ struct OpAssign(string _op, rhs_t = Guess) if(IsPyAsg(_op)) {
         }else static if(is(rhs_t == Guess)) {
             static assert(false, "Cannot determine type of rhs");
         } else static if(is(typeof(C.opOpAssign!(_op,rhs_t)) == function)) {
-            alias rhs_t RHS_T;
-            alias ReturnType!(typeof(C.opOpAssign!(_op,rhs_t))) RET_T;
-            alias C.opOpAssign!(_op,rhs_t) FN;
+            alias RHS_T = rhs_t;
+            alias RET_T = ReturnType!(typeof(C.opOpAssign!(_op,rhs_t)));
+            alias FN = C.opOpAssign!(_op,rhs_t);
         } else static assert(false, "Cannot get operator assignment overload");
     }
     static void call(string classname, T)() {
-        alias PydTypeObject!T type;
+        alias type = PydTypeObject!T;
         enum slot = binaryslots[op];
         mixin(autoInitializeMethods());
-        alias CW!(TypeTuple!(OpAssign)) OpAsg;
-        alias CW!(TypeTuple!()) Nop;
+        alias OpAsg = CW!(TypeTuple!(OpAssign));
+        alias Nop = CW!(TypeTuple!());
         static if(op == "^^=")
             mixin(slot ~ " = &powopasg_wrap!(T, Inner!T.FN).func;");
         else
@@ -816,9 +814,9 @@ struct OpCompare(_rhs_t = Guess) {
 
     template Inner(C) {
         static if(is(_rhs_t == Guess) && is(C == class)) {
-            alias Object rhs_t;
+            alias rhs_t = Object;
         }else {
-            alias _rhs_t rhs_t;
+            alias rhs_t = _rhs_t;
         }
         static if(!__traits(hasMember, C, "opCmp")) {
             static assert(0, C.stringof ~ " has no comparison operator overloads");
@@ -826,7 +824,7 @@ struct OpCompare(_rhs_t = Guess) {
         static if(!is(typeof(C.init.opCmp) == function)) {
             static assert(0, format("why is %s.opCmp not a function?",C));
         }
-        alias TypeTuple!(__traits(getOverloads, C, "opCmp")) Overloads;
+        alias Overloads = TypeTuple!(__traits(getOverloads, C, "opCmp"));
         static if(is(rhs_t == Guess) && Overloads.length > 1) {
             static assert(0, format("Cannot choose between %s", Overloads));
         }else static if(Overloads.length == 1) {
@@ -835,21 +833,21 @@ struct OpCompare(_rhs_t = Guess) {
                 static assert(0, format("%s.opCmp: expected param %s, got %s",
                             C, rhs_t, ParameterTypeTuple!(Overloads[0])));
             }else{
-                alias Overloads[0] FN;
+                alias FN = Overloads[0];
             }
         }else{
             template IsDesiredOverload(alias fn) {
                 enum bool IsDesiredOverload = is(ParameterTypeTuple!(fn)[0] == rhs_t);
             }
-            alias Filter!(IsDesiredOverload, Overloads) Overloads1;
+            alias Overloads1 = Filter!(IsDesiredOverload, Overloads);
             static assert(Overloads1.length == 1, 
                     format("Cannot choose between %s", Overloads1));
-            alias Overloads1[0] FN;
+            alias FN = Overloads1[0];
         }
     }
     static void call(string classname, T)() {
-        alias PydTypeObject!T type;
-        alias ApplyConstness!(T, constness!(typeof(Inner!T.FN))) cT;
+        alias type = PydTypeObject!T;
+        alias cT = ApplyConstness!(T, constness!(typeof(Inner!T.FN)));
         type.tp_richcompare = &rich_opcmp_wrap!(cT, Inner!T.FN).func;
     }
     template shim(size_t i,T) {
@@ -872,25 +870,25 @@ struct OpIndex(index_t...) {
             static assert(0, C.stringof ~ " has no index operator overloads");
         }
         static if(is(typeof(C.init.opIndex) == function)) {
-            alias TypeTuple!(__traits(getOverloads, C, "opIndex")) Overloads;
+            alias Overloads = TypeTuple!(__traits(getOverloads, C, "opIndex"));
             static if(index_t.length == 0 && Overloads.length > 1) {
                 static assert(0, 
                         format("%s.opIndex: Cannot choose between %s",
                             C.stringof,Overloads.stringof));
             }else static if(index_t.length == 0) {
-                alias Overloads[0] FN;
+                alias FN = Overloads[0];
             }else{
                 template IsDesiredOverload(alias fn) {
                     enum bool IsDesiredOverload = is(ParameterTypeTuple!fn == index_t);
                 }
-                alias Filter!(IsDesiredOverload, Overloads) Overloads1;
+                alias Overloads1 = Filter!(IsDesiredOverload, Overloads);
                 static assert(Overloads1.length == 1, 
                         format("%s.opIndex: Cannot choose between %s",
                             C.stringof,Overloads1.stringof));
-                alias Overloads1[0] FN;
+                alias FN = Overloads1[0];
             }
         }else static if(is(typeof(C.init.opIndex!(index_t)) == function)) {
-            alias C.opIndex!(index_t) FN;
+            alias FN = C.opIndex!(index_t);
         }else{
             static assert(0, 
                     format("cannot get a handle on %s.opIndex", C.stringof));
@@ -920,11 +918,11 @@ struct OpIndexAssign(index_t...) {
             static assert(0, C.stringof ~ " has no index operator overloads");
         }
         static if(is(typeof(C.init.opIndex) == function)) {
-            alias TypeTuple!(__traits(getOverloads, C, "opIndexAssign")) Overloads;
+            alias Overloads = TypeTuple!(__traits(getOverloads, C, "opIndexAssign"));
             template IsValidOverload(alias fn) {
                 enum bool IsValidOverload = ParameterTypeTuple!fn.length >= 2;
             }
-            alias Filter!(IsValidOverload, Overloads) VOverloads;
+            alias VOverloads = Filter!(IsValidOverload, Overloads);
             static if(VOverloads.length == 0 && Overloads.length != 0)
                 static assert(0,
                         "opIndexAssign must have at least 2 parameters");
@@ -933,19 +931,19 @@ struct OpIndexAssign(index_t...) {
                         format("%s.opIndexAssign: Cannot choose between %s",
                             C.stringof,VOverloads.stringof));
             }else static if(index_t.length == 0) {
-                alias VOverloads[0] FN;
+                alias FN = VOverloads[0];
             }else{
                 template IsDesiredOverload(alias fn) {
                     enum bool IsDesiredOverload = is(ParameterTypeTuple!fn == index_t);
                 }
-                alias Filter!(IsDesiredOverload, VOverloads) Overloads1;
+                alias Overloads1 = Filter!(IsDesiredOverload, VOverloads);
                 static assert(Overloads1.length == 1, 
                         format("%s.opIndex: Cannot choose between %s",
                             C.stringof,Overloads1.stringof));
-                alias Overloads1[0] FN;
+                alias FN = Overloads1[0];
             }
         }else static if(is(typeof(C.init.opIndexAssign!(index_t)) == function)) {
-            alias C.opIndexAssign!(index_t) FN;
+            alias FN = C.opIndexAssign!(index_t);
         }else{
             static assert(0, 
                     format("cannot get a handle on %s.opIndexAssign", C.stringof));
@@ -981,19 +979,19 @@ struct OpSlice() {
             static assert(0, C.stringof ~ " has no slice operator overloads");
         }
         static if(is(typeof(C.init.opSlice) == function)) {
-            alias TypeTuple!(__traits(getOverloads, C, "opSlice")) Overloads;
+            alias Overloads = TypeTuple!(__traits(getOverloads, C, "opSlice"));
             template IsDesiredOverload(alias fn) {
                 enum bool IsDesiredOverload = is(ParameterTypeTuple!fn == 
                         TypeTuple!(Py_ssize_t,Py_ssize_t));
             }
-            alias Filter!(IsDesiredOverload, Overloads) Overloads1;
+            alias Overloads1 = Filter!(IsDesiredOverload, Overloads);
             static assert(Overloads1.length != 0, 
                     format("%s.opSlice: must have overload %s",
                         C.stringof,TypeTuple!(Py_ssize_t,Py_ssize_t).stringof));
             static assert(Overloads1.length == 1, 
                     format("%s.opSlice: cannot choose between %s",
                         C.stringof,Overloads1.stringof));
-            alias Overloads1[0] FN;
+            alias FN = Overloads1[0];
         }else{
             static assert(0, format("cannot get a handle on %s.opSlice",
                         C.stringof));
@@ -1029,13 +1027,13 @@ struct OpSliceAssign(rhs_t = Guess) {
             static assert(0, C.stringof ~ " has no slice assignment operator overloads");
         }
         static if(is(typeof(C.init.opSliceAssign) == function)) {
-            alias TypeTuple!(__traits(getOverloads, C, "opSliceAssign")) Overloads;
+            alias Overloads = TypeTuple!(__traits(getOverloads, C, "opSliceAssign"));
             template IsDesiredOverload(alias fn) {
-                alias ParameterTypeTuple!fn ps;
+                alias ps = ParameterTypeTuple!fn;
                 enum bool IsDesiredOverload = 
                     is(ps[1..3] == TypeTuple!(Py_ssize_t,Py_ssize_t));
             }
-            alias Filter!(IsDesiredOverload, Overloads) Overloads1;
+            alias Overloads1 = Filter!(IsDesiredOverload, Overloads);
             static assert(Overloads1.length != 0, 
                     format("%s.opSliceAssign: must have overload %s",
                         C.stringof,TypeTuple!(Guess,Py_ssize_t,Py_ssize_t).stringof));
@@ -1043,17 +1041,17 @@ struct OpSliceAssign(rhs_t = Guess) {
                 static assert(Overloads1.length == 1, 
                         format("%s.opSliceAssign: cannot choose between %s",
                             C.stringof,Overloads1.stringof));
-                alias Overloads1[0] FN;
+                alias FN = Overloads1[0];
             }else{
                 template IsDesiredOverload2(alias fn) {
-                    alias ParameterTypeTuple!fn ps;
+                    alias ps = ParameterTypeTuple!fn;
                     enum bool IsDesiredOverload2 = is(ps[0] == rhs_t);
                 }
-                alias Filter!(IsDesiredOverload2, Overloads1) Overloads2;
+                alias Overloads2 = Filter!(IsDesiredOverload2, Overloads1);
                 static assert(Overloads2.length == 1, 
                         format("%s.opSliceAssign: cannot choose between %s",
                             C.stringof,Overloads2.stringof));
-                alias Overloads2[0] FN;
+                alias FN = Overloads2[0];
             }
         }else{
             static assert(0, format("cannot get a handle on %s.opSlice",
@@ -1081,26 +1079,26 @@ struct OpCall(Args_t...) {
     enum bool needs_shim = false;
 
     template Inner(T) {
-        alias TypeTuple!(__traits(getOverloads, T, "opCall")) Overloads;
+        alias Overloads = TypeTuple!(__traits(getOverloads, T, "opCall"));
         template IsDesiredOverload(alias fn) {
-            alias ParameterTypeTuple!fn ps;
+            alias ps = ParameterTypeTuple!fn;
             enum bool IsDesiredOverload = is(ps == Args_t);
         }
-        alias Filter!(IsDesiredOverload, Overloads) VOverloads;
+        alias VOverloads = Filter!(IsDesiredOverload, Overloads);
         static if(VOverloads.length == 0) {
             static assert(0,
                     format("%s.opCall: cannot find signature %s", T.stringof, 
                         Args_t.stringof));
         }else static if(VOverloads.length == 1){
-            alias VOverloads[0] FN;
+            alias FN = VOverloads[0];
         }else static assert(0,
                 format("%s.%s: cannot choose between %s", T.stringof, nom,
                     VOverloads.stringof));
     }
     static void call(string classname, T)() {
-        alias PydTypeObject!T type;
-        alias Inner!T.FN fn;
-        alias ApplyConstness!(T, constness!(typeof(fn))) cT;
+        alias type = PydTypeObject!T;
+        alias fn = Inner!T.FN;
+        alias cT = ApplyConstness!(T, constness!(typeof(fn)));
         type.tp_call = &opcall_wrap!(cT, fn).func;
     }
     template shim(size_t i,T) {
@@ -1119,12 +1117,12 @@ Py_ssize_t length();
   This is a limitation of the C/Python API.
   */
 template Len() {
-    alias _Len!() Len;
+    alias Len = _Len!();
 }
 
 /// ditto
 template Len(alias fn) {
-    alias _Len!(fn) Len;
+    alias Len = _Len!(fn);
 }
 
 struct _Len(fnt...) {
@@ -1135,25 +1133,25 @@ struct _Len(fnt...) {
         }else{
             enum nom = __traits(identifier, fnt[0]);
         }
-        alias TypeTuple!(__traits(getOverloads, T, nom)) Overloads;
+        alias Overloads = TypeTuple!(__traits(getOverloads, T, nom));
         template IsDesiredOverload(alias fn) {
-            alias ParameterTypeTuple!fn ps;
-            alias ReturnType!fn rt;
+            alias ps = ParameterTypeTuple!fn;
+            alias rt = ReturnType!fn;
             enum bool IsDesiredOverload = isImplicitlyConvertible!(rt,Py_ssize_t) && ps.length == 0;
         }
-        alias Filter!(IsDesiredOverload, Overloads) VOverloads;
+        alias VOverloads = Filter!(IsDesiredOverload, Overloads);
         static if(VOverloads.length == 0 && Overloads.length != 0) {
             static assert(0,
                     format("%s.%s must have signature %s", T.stringof, nom,
                         (Py_ssize_t function()).stringof));
         }else static if(VOverloads.length == 1){
-            alias VOverloads[0] FN;
+            alias FN = VOverloads[0];
         }else static assert(0,
                 format("%s.%s: cannot choose between %s", T.stringof, nom,
                     VOverloads.stringof));
     }
     static void call(string classname, T)() {
-        alias PydTypeObject!T type;
+        alias type = PydTypeObject!T;
         enum slot = "type.tp_as_sequence.sq_length";
         mixin(autoInitializeMethods());
         mixin(slot ~ " = &length_wrap!(T, Inner!T.FN).func;");
@@ -1166,7 +1164,7 @@ struct _Len(fnt...) {
 
 
 template param1(C) { 
-    template param1(T) {alias ParameterTypeTuple!(T.Inner!C .FN)[0] param1; }
+    template param1(T) {alias param1 = ParameterTypeTuple!(T.Inner!C .FN)[0]; }
 }
 
 enum IsOp(A) = __traits(hasMember, A, "op");
@@ -1190,14 +1188,14 @@ struct Operators(Ops...) {
 
     template BinOp(string op, T) {
         enum IsThisOp(A) = A.op == op;
-        alias Filter!(IsThisOp, Ops) Ops0;
-        alias Filter!(IsBin, Ops0) OpsL;
-        alias staticMap!(param1!T, OpsL) OpsLparams;
+        alias Ops0 = Filter!(IsThisOp, Ops);
+        alias OpsL = Filter!(IsBin, Ops0);
+        alias OpsLparams = staticMap!(param1!T, OpsL);
         static assert(OpsL.length <= 1, 
                 Replace!("Cannot overload $T1 $OP x with types $T2", 
                     "$OP", op, "$T1", T.stringof, "$T2",  OpsLparams.stringof));
-        alias Filter!(IsBinR, Ops0) OpsR;
-        alias staticMap!(param1, OpsR) OpsRparams;
+        alias OpsR = Filter!(IsBinR, Ops0);
+        alias OpsRparams = staticMap!(param1, OpsR);
         static assert(OpsR.length <= 1, 
                 Replace!("Cannot overload x $OP $T1 with types $T2", 
                     "$OP", op, "$T1", T.stringof, "$T2",  OpsRparams.stringof));
@@ -1206,7 +1204,7 @@ struct Operators(Ops...) {
 
         static void call() {
             static if(OpsL.length + OpsR.length != 0) {
-                alias PydTypeObject!T type;
+                alias type = PydTypeObject!T;
                 enum slot = binaryslots[op];
                 mixin(autoInitializeMethods());
                 static if(op == "in") {
@@ -1222,15 +1220,15 @@ struct Operators(Ops...) {
     }
     struct UnOp(string op, T) {
         enum IsThisOp(A) = A.op == op;
-        alias Filter!(IsUn, Filter!(IsThisOp, Ops)) Ops1;
+        alias Ops1 = Filter!(IsUn, Filter!(IsThisOp, Ops));
         static assert(Ops1.length <= 1, 
                 Replace!("Cannot have overloads of $OP$T1", 
                     "$OP", op, "$T1", T.stringof));
         static void call() {
             static if(Ops1.length != 0) {
-                alias PydTypeObject!T type;
-                alias Ops1[0] Ops1_0;
-                alias Ops1_0.Inner!T .FN fn;
+                alias type = PydTypeObject!T;
+                alias Ops1_0 = Ops1[0];
+                alias fn = Ops1_0.Inner!T.FN;
                 enum slot = unaryslots[op];
                 mixin(autoInitializeMethods());
                 mixin(slot ~ " = &opfunc_unary_wrap!(T, fn).func;");
@@ -1240,7 +1238,7 @@ struct Operators(Ops...) {
 
     static void call(T)() {
         enum GetOp(A) = A.op;
-        alias NoDuplicates!(staticMap!(GetOp, Ops)) str_op_tuple;
+        alias str_op_tuple = NoDuplicates!(staticMap!(GetOp, Ops));
         enum binops = binaryslots.keys();
         foreach(_op; str_op_tuple) {
             BinOp!(_op, T).call(); // noop if op is unary
@@ -1253,8 +1251,8 @@ struct Constructors(string classname, Ctors...) {
     enum bool needs_shim = true;
 
     static void call(T, Shim)() {
-        alias PydTypeObject!T type;
-        alias NewParamT!T U;
+        alias type = PydTypeObject!T;
+        alias U = NewParamT!T;
         static if(Ctors.length) {
             type.tp_init = &wrapped_ctors!(classname, T, Shim, Ctors).func;
         }else {
@@ -1284,11 +1282,11 @@ template IsDef(string pyname) {
     }
 }
 struct Iterator(Params...) {
-    alias Filter!(IsDef!"__iter__", Params) Iters;
-    alias Filter!(IsDef!"next", Params) Nexts;
+    alias Iters = Filter!(IsDef!"__iter__", Params);
+    alias Nexts = Filter!(IsDef!"next", Params);
     enum bool needs_shim = false;
     static void call(T)() {
-        alias PydTypeObject!T type;
+        alias type = PydTypeObject!T;
         import std.range;
         static if(Iters.length == 1 && (Nexts.length == 1 || isInputRange!(ReturnType!(Iters[0].func)))) {
             version(Python_3_0_Or_Later) {
@@ -1325,11 +1323,11 @@ TODO: Python's extended slicing is more powerful than D's. We should expose
 this.
 */
 struct IndexSliceMerge(Params...) {
-    alias Filter!(IsOpIndex, Params) OpIndexs;
-    alias Filter!(IsOpIndexAssign, Params) OpIndexAssigns;
-    alias Filter!(IsOpSlice, Params) OpSlices;
-    alias Filter!(IsOpSliceAssign, Params) OpSliceAssigns;
-    alias Filter!(IsLen, Params) Lens;
+    alias OpIndexs = Filter!(IsOpIndex, Params);
+    alias OpIndexAssigns = Filter!(IsOpIndexAssign, Params);
+    alias OpSlices = Filter!(IsOpSlice, Params);
+    alias OpSliceAssigns = Filter!(IsOpSliceAssign, Params);
+    alias Lens = Filter!(IsLen, Params);
 
     static assert(OpIndexs.length <= 1);
     static assert(OpIndexAssigns.length <= 1);
@@ -1337,7 +1335,7 @@ struct IndexSliceMerge(Params...) {
     static assert(OpSliceAssigns.length <= 1);
 
     static void call(T)() {
-        alias PydTypeObject!T type;
+        alias type = PydTypeObject!T;
         static if(OpIndexs.length + OpSlices.length) {
             {
                 enum slot = "type.tp_as_mapping.mp_subscript";
@@ -1369,7 +1367,7 @@ struct IndexSliceMerge(Params...) {
             if(i == -1 && PyErr_Occurred()) {
                 return null;
             }
-            alias OpIndexs[0] OpIndex0;
+            alias OpIndex0 = OpIndexs[0];
             return opindex_wrap!(T, OpIndex0.Inner!T.FN).func(self, key);
         }
 slice:
@@ -1386,7 +1384,7 @@ slice:
                             "slice steps not supported in D");
                     return null;
                 }
-                alias OpSlices[0] OpSlice0;
+                alias OpSlice0 = OpSlices[0];
                 return opslice_wrap!(T, OpSlice0.Inner!T.FN).func(
                         self, start, stop);
             }
@@ -1411,7 +1409,7 @@ slice:
             if(i == -1 && PyErr_Occurred()) {
                 return -1;
             }
-            alias OpIndexAssigns[0] OpIndexAssign0;
+            alias OpIndexAssign0 = OpIndexAssigns[0];
             return opindexassign_wrap!(T, OpIndexAssign0.Inner!T.FN).func(
                     self, key, val);
         }
@@ -1429,7 +1427,7 @@ slice:
                             "slice steps not supported in D");
                     return -1;
                 }
-                alias OpSliceAssigns[0] OpSliceAssign0;
+                alias OpSliceAssign0 = OpSliceAssigns[0];
                 return opsliceassign_wrap!(T, OpSliceAssign0.Inner!T.FN).func(
                         self, start, stop, val);
             }
@@ -1472,7 +1470,7 @@ Params:
     docstring = The class's docstring. Defaults to "".
   */
 void wrap_class(T, Params...)() {
-    alias Args!("","", __traits(identifier,T), "",Params) args;
+    alias args = Args!("","", __traits(identifier,T), "",Params);
     _wrap_class!(T, args.pyname, args.docstring, args.modulename, args.rem).wrap_class();
 }
 template _wrap_class(_T, string name, string docstring, string modulename, Params...) {
@@ -1480,13 +1478,13 @@ template _wrap_class(_T, string name, string docstring, string modulename, Param
     import util.typelist;
     static if (is(_T == class)) {
         //pragma(msg, "wrap_class: " ~ name);
-        alias pyd.make_wrapper.make_wrapper!(_T, Params).wrapper shim_class;
+        alias shim_class = pyd.make_wrapper.make_wrapper!(_T, Params).wrapper;
         //alias W.wrapper shim_class;
-        alias _T T;
+        alias T = _T;
     } else {
         //pragma(msg, "wrap_struct: '" ~ name ~ "'");
-        alias void shim_class;
-        alias _T* T;
+        alias shim_class = void;
+        alias T = _T*;
     }
     void wrap_class() {
         if(!Pyd_Module_p(modulename)) {
@@ -1495,7 +1493,7 @@ template _wrap_class(_T, string name, string docstring, string modulename, Param
                 return;
             }
         }
-        alias PydTypeObject!(T) type;
+        alias type = PydTypeObject!(T);
         init_PyTypeObject!T(type);
 
         foreach (param; Params) {

@@ -32,9 +32,9 @@ import pyd.func_wrap;
 import pyd.make_object;
 
 template call_ctor(T, init) {
-    alias ParameterTypeTuple!(init.Inner!T.FN) paramtypes;
-    alias ParameterIdentifierTuple!(init.Inner!T.FN) paramids;
-    alias ParameterDefaultValueTuple!(init.Inner!T.FN) dfs;
+    alias paramtypes = ParameterTypeTuple!(init.Inner!T.FN);
+    alias paramids = ParameterIdentifierTuple!(init.Inner!T.FN);
+    alias dfs = ParameterDefaultValueTuple!(init.Inner!T.FN);
     enum params = getparams!(init.Inner!T.FN, "paramtypes", "dfs");
     mixin(Replace!(q{
     T func($params) {
@@ -73,8 +73,8 @@ template wrapped_struct_init(T) if (is(T == struct)){
 template wrapped_ctors(string classname, T,Shim, C ...) 
 if(is(T == class) || (isPointer!T && is(pointerTarget!T == struct))) {
     //alias shim_class T;
-    alias wrapped_class_object!(T) wrap_object;
-    alias NewParamT!T U;
+    alias wrap_object = wrapped_class_object!(T);
+    alias U = NewParamT!T;
 
     extern(C)
     static int func(PyObject* self, PyObject* args, PyObject* kwargs) {
@@ -94,7 +94,7 @@ if(is(T == class) || (isPointer!T && is(pointerTarget!T == struct))) {
             // find another Ctor
             foreach(i, init; C) {
                 if (supportsNArgs!(init.Inner!T.FN)(len)) {
-                    alias call_ctor!(T, init).func fn;
+                    alias fn = call_ctor!(T, init).func;
                     T t = applyPyTupleToAlias!(fn, classname)(args, kwargs);
                     if (t is null) {
                         PyErr_SetString(PyExc_RuntimeError, "Class ctor redirect didn't return a class instance!");

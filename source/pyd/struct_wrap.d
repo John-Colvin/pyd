@@ -39,18 +39,17 @@ import pyd.make_object;
 // as a template parameter, rather than the struct type itself.
 
 template wrapped_member(T, string name, string mode, PropertyParts...) {
-    alias PydTypeObject!(T) type;
-    alias wrapped_class_object!(T) obj;
+    alias type = PydTypeObject!(T);
+    alias obj = wrapped_class_object!(T);
     static if(PropertyParts.length != 0) {
-        alias PropertyParts[0] ppart0;
-        alias ppart0.Type M;
+        alias ppart0 = PropertyParts[0];
+        alias M = ppart0.Type;
         // const setters make no sense. getters though..
         static if(ppart0.isgproperty) {
-            alias ApplyConstness2!(T,constness!(FunctionTypeOf!(ppart0.GetterFn)))
-                GT;
+            alias GT = ApplyConstness2!(T,constness!(FunctionTypeOf!(ppart0.GetterFn)));
         }
     }else {
-        alias T GT;
+        alias GT = T;
         mixin("alias typeof(T."~name~") M;");
     } 
     static if(countUntil(mode, "r") != -1) {
@@ -90,7 +89,7 @@ are "r", "w", "rw". Defaults to "rw".
 docstring = The function's docstring. Defaults to "".
 */
 struct Member(string name, Options...) {
-    alias Args!("","", name, "rw",Options) args;
+    alias args = Args!("","", name, "rw",Options);
     mixin _Member!(name, args.pyname, args.mode, args.docstring);
 }
 
@@ -99,7 +98,7 @@ template _Member(string realname, string pyname, string mode, string docstring, 
     static void call(string classname, T) () {
         //pragma(msg, "struct.member: " ~ pyname);
         static PyGetSetDef empty = {null, null, null, null, null};
-        alias wrapped_prop_list!(T) list;
+        alias list = wrapped_prop_list!(T);
         list[$-1].name = (pyname ~ "\0").dup.ptr;
         static if(countUntil(mode, "r") != -1) {
             list[$-1].get = &wrapped_member!(T, realname, mode, parts).get;
@@ -115,5 +114,5 @@ template _Member(string realname, string pyname, string mode, string docstring, 
 }
 
 /// Wrap a struct.
-alias wrap_class wrap_struct;
+alias wrap_struct = wrap_class;
 

@@ -70,8 +70,8 @@ static if(version_major == 2 && version_minor >= 67) {
 // Builds a callable Python object from a delegate or function pointer.
 void PydWrappedFunc_Ready(S)() {
     alias T = StripFunctionAttributes!S;
-    alias PydTypeObject!(T) type;
-    alias wrapped_class_object!(T) obj;
+    alias type = PydTypeObject!(T);
+    alias obj = wrapped_class_object!(T);
     if (!is_wrapped!(T)) {
         init_PyTypeObject!T(type);
         Py_SET_TYPE(&type, &PyType_Type);
@@ -138,10 +138,10 @@ struct TupleComposer(Ts...) {
 // Calls callable alias fn with PyTuple args.
 // kwargs may be null, args may not
 ReturnType!fn applyPyTupleToAlias(alias fn, string fname)(PyObject* args, PyObject* kwargs) {
-    alias ParameterTypeTuple!fn T;
+    alias T = ParameterTypeTuple!fn;
     enum size_t MIN_ARGS = minArgs!fn;
-    alias maxArgs!fn MaxArgs;
-    alias ReturnType!fn RT;
+    alias MaxArgs = maxArgs!fn;
+    alias RT = ReturnType!fn;
     bool argsoverwrote = false;
 
     Py_ssize_t argCount = 0;
@@ -172,7 +172,7 @@ ReturnType!fn applyPyTupleToAlias(alias fn, string fname)(PyObject* args, PyObje
     foreach(i, arg; t.fields) {
         enum size_t argNum = i+1;
         static if(MaxArgs.vstyle == Variadic.no) {
-            alias ParameterDefaultValueTuple!fn Defaults;
+            alias Defaults = ParameterDefaultValueTuple!fn;
             if (i < argCount) {
                 auto bpobj =  PyTuple_GetItem(args, cast(Py_ssize_t) i);
                 if(bpobj) {
@@ -200,7 +200,7 @@ ReturnType!fn applyPyTupleToAlias(alias fn, string fname)(PyObject* args, PyObje
                 t = t.put!i(python_to_d!(typeof(arg))(pobj));
                 Py_DECREF(pobj);
             }else static if(argNum == t.fields.length) {
-                alias Unqual!(ElementType!(typeof(t.fields[i]))) elt_t;
+                alias elt_t = Unqual!(ElementType!(typeof(t.fields[i])));
                 auto varlen = argCount-i;
                 if(varlen == 1) {
                     auto  pobj = Py_XINCREF(PyTuple_GetItem(args, cast(Py_ssize_t) i));
@@ -244,9 +244,9 @@ PyObject* pyApplyToAlias(alias fn, string fname) (PyObject* args, PyObject* kwar
 }
 
 ReturnType!(dg_t) applyPyTupleToDelegate(dg_t) (dg_t dg, PyObject* args) {
-    alias ParameterTypeTuple!(dg_t) T;
+    alias T = ParameterTypeTuple!(dg_t);
     enum size_t ARGS = T.length;
-    alias ReturnType!(dg_t) RT;
+    alias RT = ReturnType!(dg_t);
 
     Py_ssize_t argCount = 0;
     // This can make it more convenient to call this with 0 args.
@@ -286,7 +286,7 @@ PyObject* pyApplyToDelegate(dg_t) (dg_t dg, PyObject* args) {
 
 template wrapped_func_call(fn_t) {
     enum size_t ARGS = ParameterTypeTuple!(fn_t).length;
-    alias ReturnType!(fn_t) RT;
+    alias RT = ReturnType!(fn_t);
     // The entry for the tp_call slot of the PydFunc types.
     // (Or: What gets called when you pass a delegate or function pointer to
     // Python.)
@@ -306,9 +306,9 @@ template wrapped_func_call(fn_t) {
 
 // Wraps a function alias with a PyCFunctionWithKeywords.
 template function_wrap(alias real_fn, string fnname) {
-    alias ParameterTypeTuple!real_fn Info;
+    alias Info = ParameterTypeTuple!real_fn;
     enum size_t MAX_ARGS = Info.length;
-    alias ReturnType!real_fn RT;
+    alias RT = ReturnType!real_fn;
 
     extern (C)
     PyObject* func(PyObject* self, PyObject* args, PyObject* kwargs) {
@@ -326,9 +326,9 @@ template method_wrap(C, alias real_fn, string fname) {
     static assert(constCompatible(constness!C, constness!(typeof(real_fn))), 
             format("constness mismatch instance: %s function: %s", 
                 C.stringof, typeof(real_fn).stringof));
-    alias ParameterTypeTuple!real_fn Info;
+    alias Info = ParameterTypeTuple!real_fn;
     enum size_t ARGS = Info.length;
-    alias ReturnType!real_fn RT;
+    alias RT = ReturnType!real_fn;
     extern(C)
     PyObject* func(PyObject* self, PyObject* args, PyObject* kwargs) {
         return exception_catcher(delegate PyObject*() {
@@ -356,16 +356,16 @@ template method_wrap(C, alias real_fn, string fname) {
                 auto pobj = Py_XINCREF(PyTuple_GetItem(args, cast(Py_ssize_t) i));
                 PyTuple_SetItem(self_and_args, cast(Py_ssize_t) i+1, pobj);
             }
-            alias memberfunc_to_func!(C,real_fn).func func;
+            alias func = memberfunc_to_func!(C,real_fn).func;
             return pyApplyToAlias!(func,fname)(self_and_args, kwargs);
         });
     }
 }
 
 template method_dgwrap(C, alias real_fn) {
-    alias ParameterTypeTuple!real_fn Info;
+    alias Info = ParameterTypeTuple!real_fn;
     enum size_t ARGS = Info.length;
-    alias ReturnType!real_fn RT;
+    alias RT = ReturnType!real_fn;
     extern(C)
     PyObject* func(PyObject* self, PyObject* args) {
         return exception_catcher(delegate PyObject*() {
@@ -387,10 +387,10 @@ template method_dgwrap(C, alias real_fn) {
 
 
 template memberfunc_to_func(T, alias memfn) {
-    alias ReturnType!memfn Ret;
-    alias ParameterTypeTuple!memfn PS;
-    alias ParameterIdentifierTuple!memfn ids;
-    alias ParameterDefaultValueTuple!memfn dfs;
+    alias Ret = ReturnType!memfn;
+    alias PS = ParameterTypeTuple!memfn;
+    alias ids = ParameterIdentifierTuple!memfn;
+    alias dfs = ParameterDefaultValueTuple!memfn;
     enum params = getparams!(memfn,"PS","dfs");
     enum t = gensym!ids();
         
@@ -447,8 +447,8 @@ Dg PydCallable_AsDelegate(Dg) (PyObject* c) {
 }
 
 private template _pycallable_asdgT(Dg) if(is(Dg == delegate)) {
-    alias ParameterTypeTuple!(Dg) Info;
-    alias ReturnType!(Dg) Tr;
+    alias Info = ParameterTypeTuple!(Dg);
+    alias Tr = ReturnType!(Dg);
 
     Dg func(PyObject* c) {
         auto f = new PydWrappedFunc(c);
@@ -521,17 +521,17 @@ class PydWrappedFunc {
 }
 
 PyObject* arrangeNamedArgs(alias fn, string fname)(PyObject* args, PyObject* kwargs) {
-    alias ParameterIdentifierTuple!fn ids;
+    alias ids = ParameterIdentifierTuple!fn;
     string[] allfnnames = new string[](ids.length);
     size_t[string] allfnnameset;
     foreach(i,id; ids) {
         allfnnames[i] = id;
         allfnnameset[id] = i;
     }
-    alias variadicFunctionStyle!fn vstyle;
+    alias vstyle = variadicFunctionStyle!fn;
     size_t firstDefaultValueIndex = ids.length;
     static if(vstyle == Variadic.no) {
-        alias ParameterDefaultValueTuple!fn Defaults;
+        alias Defaults = ParameterDefaultValueTuple!fn;
         foreach(i, v; Defaults) {
             static if(!is(v == void)) {
                 firstDefaultValueIndex = i;
@@ -581,9 +581,9 @@ PyObject* arrangeNamedArgs(alias fn, string fname)(PyObject* args, PyObject* kwa
 }
 
 template minNumArgs_impl(alias fn, fnT) {
-    alias ParameterTypeTuple!(fnT) Params;
-    alias ParameterDefaultValueTuple!(fn) Defaults;
-    alias variadicFunctionStyle!fn vstyle;
+    alias Params = ParameterTypeTuple!(fnT);
+    alias Defaults = ParameterDefaultValueTuple!(fn);
+    alias vstyle = variadicFunctionStyle!fn;
     static if(Params.length == 0) {
         // handle func(), func(...)
         enum res = 0;
@@ -616,8 +616,8 @@ template minArgs(alias fn, fnT = typeof(&fn)) {
   and/or whether the function has a maximum number of arguments.
   */
 template maxArgs(alias fn, fn_t = typeof(&fn)) {
-    alias variadicFunctionStyle!fn vstyle;
-    alias ParameterTypeTuple!fn ps;
+    alias vstyle = variadicFunctionStyle!fn;
+    alias ps = ParameterTypeTuple!fn;
     /// _
     enum bool hasMax = vstyle == Variadic.no;
     /// _
@@ -631,9 +631,9 @@ bool supportsNArgs(alias fn, fn_t = typeof(&fn))(size_t n) {
     if(n < minArgs!(fn,fn_t)) {
         return false;
     }
-    alias variadicFunctionStyle!fn vstyle;
-    alias ParameterTypeTuple!fn ps;
-    alias ParameterDefaultValueTuple!fn defaults;
+    alias vstyle = variadicFunctionStyle!fn;
+    alias ps = ParameterTypeTuple!fn;
+    alias defaults = ParameterDefaultValueTuple!fn;
     static if(vstyle == Variadic.no) {
         return (n >= minArgs!(fn,fn_t) && n <= maxArgs!(fn,fn_t).max);
     }else static if(vstyle == Variadic.c) {
@@ -661,8 +661,8 @@ static assert(getparams!(foo,"P","Pd") == "P[0] i, P[1] j = Pd[1]");
 ---
   */
 template getparams(alias fn, string pt_alias, string pd_alias) {
-    alias ParameterIdentifierTuple!fn Pi;
-    alias ParameterDefaultValueTuple!fn Pd;
+    alias Pi = ParameterIdentifierTuple!fn;
+    alias Pd = ParameterDefaultValueTuple!fn;
     enum var = variadicFunctionStyle!fn;
 
     string inner() {
@@ -691,33 +691,33 @@ template getparams(alias fn, string pt_alias, string pd_alias) {
 }
 
 template isImmutableFunction(T...) if (T.length == 1) {
-    alias funcTarget!T func_t;
+    alias func_t = funcTarget!T;
     enum isImmutableFunction = is(func_t == immutable);
 }
 template isConstFunction(T...) if (T.length == 1) {
-    alias funcTarget!T func_t;
+    alias func_t = funcTarget!T;
     enum isConstFunction = is(func_t == const);
 }
 template isMutableFunction(T...) if (T.length == 1) {
-    alias funcTarget!T func_t;
+    alias func_t = funcTarget!T;
     enum isMutableFunction = !is(func_t == inout) && !is(func_t == const) && !is(func_t == immutable);
 }
 template isWildcardFunction(T...) if (T.length == 1) {
-    alias funcTarget!T func_t;
+    alias func_t = funcTarget!T;
     enum isWildcardFunction = is(func_t == inout);
 }
 template isSharedFunction(T...) if (T.length == 1) {
-    alias funcTarget!T func_t;
+    alias func_t = funcTarget!T;
     enum isSharedFunction = is(func_t == shared);
 }
 
 template funcTarget(T...) if(T.length == 1) {
     static if(isPointer!(T[0]) && is(pointerTarget!(T[0]) == function)) {
-        alias pointerTarget!(T[0]) funcTarget;
+        alias funcTarget = pointerTarget!(T[0]);
     }else static if(is(T[0] == function)) {
-        alias T[0] funcTarget;
+        alias funcTarget = T[0];
     }else static if(is(T[0] == delegate)) {
-        alias pointerTarget!(typeof((T[0]).init.funcptr)) funcTarget;
+        alias funcTarget = pointerTarget!(typeof((T[0]).init.funcptr));
     }else static assert(false);
 }
 
@@ -752,8 +752,8 @@ bool constnessMatch2(fn...)(Constness c) if(fn.length == 1) {
  */
 
 template fn_to_dgT(Fn) {
-    alias ParameterTypeTuple!(Fn) T;
-    alias ReturnType!(Fn) Ret;
+    alias T = ParameterTypeTuple!(Fn);
+    alias Ret = ReturnType!(Fn);
 
     mixin("alias Ret delegate(T) " ~ tattrs_to_string!(Fn)() ~ " type;");
 }
@@ -762,7 +762,7 @@ template fn_to_dgT(Fn) {
  * This template converts a function type into an equivalent delegate type.
  */
 template fn_to_dg(Fn) {
-    alias fn_to_dgT!(Fn).type fn_to_dg;
+    alias fn_to_dg = fn_to_dgT!(Fn).type;
 }
 
 /**

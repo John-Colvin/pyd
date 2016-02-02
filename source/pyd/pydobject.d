@@ -615,7 +615,7 @@ Struct Format Strings </a>
     /// Equivalent to o[_key] = _value in Python.
     void opIndexAssign(T,S)(T value, S key) {
         static if (is(T == PydObject)) {
-            alias value v;
+            alias v = value;
         }else{
             auto v = py(value);
         }
@@ -624,7 +624,7 @@ Struct Format Strings </a>
                 handle_exception();
             return;
         }else static if (is(S == PydObject)) {
-            alias key k;
+            alias k = key;
         }else{
             auto k = py(key);
         }
@@ -761,7 +761,7 @@ Struct Format Strings </a>
                 static if(is(T == PydObject)) {
                     int j = python_to_d!int(o.m_ptr);
                 }else{
-                    alias o j;
+                    alias j = o;
                 }
                 return new PydObject(PySequence_Repeat(m_ptr, j));
             }
@@ -769,7 +769,7 @@ Struct Format Strings </a>
         static if (!is(T == PydObject)) {
             PydObject rhs = py(o);
         }else{
-            alias o rhs;
+            alias rhs = o;
         }
         static if(op == "+") {
             return new PydObject(PyNumber_Add(m_ptr, rhs.m_ptr));
@@ -881,7 +881,7 @@ Struct Format Strings </a>
                 static if(is(T == PydObject)) {
                     int j = python_to_d!int(o.m_ptr);
                 }else{
-                    alias o j;
+                    alias j = o;
                 }
                 
                 PyObject* result = PySequence_InPlaceRepeat(m_ptr, j);
@@ -894,36 +894,36 @@ Struct Format Strings </a>
         static if (!is(T == PydObject)) {
             PydObject rhs = py(o);
         }else{
-            alias o rhs;
+            alias rhs = o;
         }
         static if(op == "+") {
-            alias PyNumber_InPlaceAdd Op;
+            alias Op = PyNumber_InPlaceAdd;
         }else static if(op == "-") {
-            alias PyNumber_InPlaceSubtract Op;
+            alias Op = PyNumber_InPlaceSubtract;
         }else static if(op == "*") {
-            alias PyNumber_InPlaceMultiply Op;
+            alias Op = PyNumber_InPlaceMultiply;
         }else static if(op == "/") {
             version(Python_3_0_Or_Later) {
-                alias PyNumber_InPlaceTrueDivide Op;
+                alias Op = PyNumber_InPlaceTrueDivide;
             }else{
-                alias PyNumber_InPlaceDivide Op;
+                alias Op = PyNumber_InPlaceDivide;
             }
         }else static if(op == "%") {
-            alias PyNumber_InPlaceRemainder Op;
+            alias Op = PyNumber_InPlaceRemainder;
         }else static if(op == "^^") {
-            alias PyNumber_InPlacePower Op;
+            alias Op = PyNumber_InPlacePower;
         }else static if(op == "<<") {
-            alias PyNumber_InPlaceLshift Op;
+            alias Op = PyNumber_InPlaceLshift;
         }else static if(op == ">>") {
-            alias PyNumber_InPlaceRshift Op;
+            alias Op = PyNumber_InPlaceRshift;
         }else static if(op == "&") {
-            alias PyNumber_InPlaceAnd Op;
+            alias Op = PyNumber_InPlaceAnd;
         }else static if(op == "^") {
-            alias PyNumber_InPlaceXor Op;
+            alias Op = PyNumber_InPlaceXor;
         }else static if(op == "|") {
-            alias PyNumber_InPlaceOr Op;
+            alias Op = PyNumber_InPlaceOr;
         }else static if(op == "~") {
-            alias PySequence_InPlaceConcat Op;
+            alias Op = PySequence_InPlaceConcat;
         }else static assert(false, "operator " ~ op ~" not supported");
 
         //EMN: not seeming to be working the way we want it
@@ -1166,7 +1166,7 @@ Struct Format Strings </a>
     /// Forwards to setattr
     @property void opDispatch(string nom, T)(T val) {
         static if(is(T == PydObject)) {
-            alias val value;
+            alias value = val;
         }else{
             auto value = py(val);
         }

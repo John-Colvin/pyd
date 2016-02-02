@@ -269,7 +269,7 @@ version(Python_2_6_Or_Later) {
         if(numpy) {
             py_stmts(
                     "from numpy import eye\n"
-                    "a = eye(4,k=1)\n"
+                    ~ "a = eye(4,k=1)\n"
                     ,
                     "testing");
             PydObject ao = py_eval("a","testing");

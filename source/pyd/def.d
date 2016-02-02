@@ -114,36 +114,36 @@ struct Args(string default_modulename,
             string default_pyname,
             string default_mode,
             Params...) {
-    alias Filter!(IsDocstring, Params) Docstrings;
+    alias Docstrings = Filter!(IsDocstring, Params);
     static if(Docstrings.length) {
         enum docstring = Docstrings[0].doc;
     }else{
         enum docstring = default_docstring;
     }
-    alias Filter!(IsPyName, Params) PyNames;
+    alias PyNames = Filter!(IsPyName, Params);
     static if(PyNames.length) {
         enum pyname = PyNames[0].name;
     }else{
         enum pyname = default_pyname;
     }
-    alias Filter!(IsMode, Params) Modes;
+    alias Modes = Filter!(IsMode, Params);
     static if(Modes.length) {
         enum mode = Modes[0].mode;
     }else{
         enum mode = default_mode;
     }
-    alias Filter!(IsModuleName, Params) ModuleNames;
+    alias ModuleNames = Filter!(IsModuleName, Params);
     static if(ModuleNames.length) {
         enum modulename = ModuleNames[0].modulename;
     }else{
         enum modulename = default_modulename;
     }
 
-    alias Filter!(templateNot!IsModuleName,
+    alias rem = Filter!(templateNot!IsModuleName,
           Filter!(templateNot!IsDocstring,
           Filter!(templateNot!IsPyName,
           Filter!(templateNot!IsMode,
-              Params)))) rem;
+              Params))));
     template IsString(T...) {
         enum bool IsString = is(typeof(T[0]) == string);
     }
@@ -194,13 +194,13 @@ It's greater than 10!)
 
 
 void def(alias _fn, Options...)() {
-    alias Args!("","", __traits(identifier,_fn), "",Options) args;
+    alias args = Args!("","", __traits(identifier,_fn), "",Options);
     static if(args.rem.length) {
-        alias args.rem[0] fn_t;
+        alias fn_t = args.rem[0];
     }else {
-        alias typeof(&_fn) fn_t;
+        alias fn_t = typeof(&_fn) ;
     }
-    alias def_selector!(_fn, fn_t).FN fn;
+    alias fn = def_selector!(_fn, fn_t).FN;
 
     PyMethodDef empty;
     ready_module_methods(args.modulename);
@@ -214,45 +214,45 @@ void def(alias _fn, Options...)() {
 }
 
 template Typeof(alias fn0) {
-    alias typeof(&fn0) Typeof;
+    alias Typeof = typeof(&fn0) ;
 }
 
 template def_selector(alias fn, fn_t) {
-    alias alias_selector!(fn, fn_t) als;
+    alias als = alias_selector!(fn, fn_t);
     static if(als.VOverloads.length == 0 && als.Overloads.length != 0) {
-        alias staticMap!(Typeof, als.Overloads) OverloadsT;
+        alias OverloadsT = staticMap!(Typeof, als.Overloads);
         static assert(0, format("%s not among %s",
                     fn_t.stringof,OverloadsT.stringof));
     }else static if(als.VOverloads.length > 1){
         static assert(0, format("%s: Cannot choose between %s", als.nom,
                     staticMap!(Typeof, als.VOverloads)));
     }else{
-        alias als.VOverloads[0] FN;
+        alias FN = als.VOverloads[0];
     }
 }
 
 template IsEponymousTemplateFunction(alias fn) {
     // dmd issue 13372: its not a bug, its a feature!
-    alias TypeTuple!(__traits(parent, fn))[0] Parent;
+    alias Parent = TypeTuple!(__traits(parent, fn))[0];
     enum IsEponymousTemplateFunction = is(typeof(Parent) == typeof(fn));
 }
 
 template alias_selector(alias fn, fn_t) {
-    alias ParameterTypeTuple!fn_t ps;
-    alias ReturnType!fn_t ret;
-    alias TypeTuple!(__traits(parent, fn))[0] Parent;
+    alias ps = ParameterTypeTuple!fn_t;
+    alias ret = ReturnType!fn_t;
+    alias Parent = TypeTuple!(__traits(parent, fn))[0];
     enum nom = __traits(identifier, fn);
     template IsDesired(alias f) {
-        alias ParameterTypeTuple!f fps;
-        alias ReturnType!f fret;
+        alias fps = ParameterTypeTuple!f;
+        alias fret = ReturnType!f;
         enum bool IsDesired = is(ps == fps) && is(fret == ret);
     }
     static if(IsEponymousTemplateFunction!fn) {
-        alias TypeTuple!(fn) Overloads;
+        alias Overloads = TypeTuple!(fn);
     }else{
-        alias TypeTuple!(__traits(getOverloads, Parent, nom)) Overloads;
+        alias Overloads = TypeTuple!(__traits(getOverloads, Parent, nom));
     }
-    alias Filter!(IsDesired, Overloads) VOverloads;
+    alias VOverloads = Filter!(IsDesired, Overloads);
 }
 
 string pyd_module_name;
@@ -340,7 +340,7 @@ modulename = name of module
 docstring = docstring of module
  */
 void add_module(Options...)() {
-    alias Args!("","", "", "",Options) args;
+    alias args = Args!("","", "", "",Options);
     enum modulename = args.modulename;
     enum docstring = args.docstring;
     ready_module_methods(modulename);

@@ -35,10 +35,10 @@ import util.typeinfo;
  * the conversion functions (see make_object.d), but possibly useful elsewhere.
  */
 template is_wrapped(T) {
-    alias pyd_references!T.Mapping Mapping;
+    alias Mapping = pyd_references!T.Mapping;
 
     static if(!is(Mapping.TypeInfoType!T == T)) {
-        alias is_wrapped!(Mapping.TypeInfoType!T) is_wrapped;
+        alias is_wrapped = is_wrapped!(Mapping.TypeInfoType!T);
     }else{
         bool is_wrapped = false;
     }
@@ -47,10 +47,10 @@ template is_wrapped(T) {
 /// _
 // wrapped_class_type
 template PydTypeObject(T) {
-    alias pyd_references!T.Mapping Mapping;
+    alias Mapping = pyd_references!T.Mapping;
 
     static if(!is(Mapping.TypeInfoType!T == T)) {
-        alias PydTypeObject!(Mapping.TypeInfoType!T) PydTypeObject;
+        alias PydTypeObject = PydTypeObject!(Mapping.TypeInfoType!T);
     }else{
         // The type object, an instance of PyType_Type
         PyTypeObject PydTypeObject;
@@ -63,8 +63,7 @@ template IsRefParam(alias p) {
 }
 
 template FnHasRefParams(Fn) {
-    alias anySatisfy!(IsRefParam, ParameterStorageClassTuple!(Fn))
-        FnHasRefParams;
+    alias FnHasRefParams = anySatisfy!(IsRefParam, ParameterStorageClassTuple!(Fn));
 }
 
 struct DFn_Py_Mapping {
@@ -90,9 +89,9 @@ struct DFn_Py_Mapping {
     }
 
     template TypeInfoType(T) if(isFunctionPointer!T) {
-        alias Unqual!(
+        alias TypeInfoType = Unqual!(
                 SetFunctionAttributes!(T, functionLinkage!T,
-                    FunctionAttribute.none)) TypeInfoType;
+                    FunctionAttribute.none));
     }
 
     public static const(void)* DKey(T)(T t)
@@ -128,9 +127,9 @@ struct DDg_Py_Mapping {
     }
 
     template TypeInfoType(T) {
-        alias Unqual!(
+        alias TypeInfoType = Unqual!(
                 SetFunctionAttributes!(T, functionLinkage!T,
-                    FunctionAttribute.none)) TypeInfoType;
+                    FunctionAttribute.none));
     }
 
     public static const(void)*[2] DKey(T)(T t)
@@ -164,7 +163,7 @@ struct DStruct_Py_Mapping {
     }
 
     template TypeInfoType(T) if(isPointer!T && is(pointerTarget!T == struct)) {
-        alias Unqual!T TypeInfoType;
+        alias TypeInfoType = Unqual!T;
     }
 
     public static const(void)* DKey(T)(T t)
@@ -191,7 +190,7 @@ struct DClass_Py_Mapping {
     }
 
     template TypeInfoType(T) if(is(T == class)) {
-            alias Unqual!T TypeInfoType;
+            alias TypeInfoType = Unqual!T;
     }
 
     public static const(void)* DKey(T)(T t)
@@ -215,11 +214,10 @@ struct DClass_Py_Mapping {
 /// We use malloc for the container's structure because we can't use the GC 
 /// inside a destructor and we need to use this container there.
 template reference_container(Mapping) {
-    alias MultiIndexContainer!(Mapping, IndexedBy!(
+    alias Container = MultiIndexContainer!(Mapping, IndexedBy!(
                 HashedUnique!("a.d"), "d",
                 HashedUnique!("a.py"), "python"),
-            MallocAllocator, MutableView)
-        Container;
+            MallocAllocator, MutableView);
     Container _reference_container = null;
 
     @property reference_container() {
@@ -240,22 +238,22 @@ template reference_container(Mapping) {
 // A mapping of all GC references that are being held by Python.
 template pyd_references(T) {
     static if(isDelegate!T) {
-        alias DDg_Py_Mapping Mapping;
+        alias Mapping = DDg_Py_Mapping;
     }else static if (isFunctionPointer!T) {
-        alias DFn_Py_Mapping Mapping;
+        alias Mapping = DFn_Py_Mapping;
     }else static if(isPointer!T && is(pointerTarget!T == struct)) {
-        alias DStruct_Py_Mapping Mapping;
+        alias Mapping = DStruct_Py_Mapping;
     }else static if (is(T == class)) {
-        alias DClass_Py_Mapping Mapping;
+        alias Mapping = DClass_Py_Mapping;
     }else static assert(0, format("type %s cannot sent to pyd, because ??",
                 T.stringof));
-    alias reference_container!Mapping container;
+    alias container = reference_container!Mapping;
 }
 
 void set_pyd_mapping(T) (PyObject* _self, T t) {
     import std.stdio;
-    alias pyd_references!T.Mapping Mapping;
-    alias pyd_references!T.container container;
+    alias Mapping = pyd_references!T.Mapping;
+    alias container = pyd_references!T.container;
     
     Mapping mapping = Mapping(t, _self);
     auto py_index = container.python;
@@ -276,8 +274,8 @@ void set_pyd_mapping(T) (PyObject* _self, T t) {
 void remove_pyd_mapping(T)(PyObject* self) {
     import std.range;
     import std.stdio;
-    alias pyd_references!T.Mapping Mapping;
-    alias pyd_references!T.container container;
+    alias Mapping = pyd_references!T.Mapping;
+    alias container = pyd_references!T.container;
     
     auto py_index = container.python;
     auto range = py_index.equalRange(self);
@@ -297,8 +295,8 @@ bool isConversionAddingFunctionAttributes(
  * Returns the object contained in a Python wrapped type.
  */
 T get_d_reference(T) (PyObject* _self) {
-    alias pyd_references!T.container container;
-    alias pyd_references!T.Mapping Mapping;
+    alias container = pyd_references!T.container;
+    alias Mapping = pyd_references!T.Mapping;
     import thread = pyd.thread;
 
     thread.ensureAttached();
@@ -353,7 +351,7 @@ T get_d_reference(T) (PyObject* _self) {
         enforce(range.front.linkage == functionLinkage!T,
                 format(
                     "trying to convert a extern(\"%s\") "
-                    "%s to extern(\"%s\")",
+                    ~ "%s to extern(\"%s\")",
                     range.front.linkage, (isDelegate!T ? "delegate":"function"),
                     functionLinkage!T));
         // losing function attributes is ok,
@@ -376,8 +374,8 @@ T get_d_reference(T) (PyObject* _self) {
 /// If the passed D reference has an existing Python object, return a borrowed
 /// reference to it. Otherwise, return null.
 PyObject_BorrowedRef* get_python_reference(T) (T t) {
-    alias pyd_references!T.container container;
-    alias pyd_references!T.Mapping Mapping;
+    alias container = pyd_references!T.container;
+    alias Mapping = pyd_references!T.Mapping;
 
     auto d_index = container.d;
     auto range = d_index.equalRange(Mapping.DKey(t));
