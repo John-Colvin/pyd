@@ -12,10 +12,10 @@ wrap"
 
 for folder in $examples; do
     pushd $folder
-    $TEST_PYTHON ../../genDubConfig.py $folder > dub.json
-    [[ $# = 0 ]] && dub build
-    [[ $# = 1 ]] && dub build --compiler=$1
-    [[ $# = 2 ]] && dub build --compiler=$1 --arch=$2
-    $TEST_PYTHON test.py
+    $1 ../../genDubConfig.py $folder > dub.json
+    [[ $# = 1 ]] && dub build -v
+    [[ $# = 2 ]] && dub build -v --compiler=$2
+    [[ $# = 3 ]] && dub build -v --compiler=$2 --arch=$3
+    $1 test.py
     popd
 done

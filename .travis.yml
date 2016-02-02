@@ -51,4 +51,4 @@ addons:
      - python3-dev
 
 script:
-  - cd examples && ./runAll.sh
+  - cd examples && ./runAll.sh $TEST_PYTHON $DC $ARCH
