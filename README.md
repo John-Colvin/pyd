@@ -1,14 +1,15 @@
 [![build-status-badge]][build-status]
-[![docs-badge]][docs]
-[![pypi-version]][pypi]
-[![license-badge]][license]
 
 # PyD
 
 PyD provides seamless interoperability between Python and the D programming language.
 
 This repo is a fork with the aim of massively cleaning up PyD and bringing it up to
-speed with modern D. So far, so good.
+speed with modern D.
+
+So far it's mostly been a job of deleting old things and revamping the build system.
+
+Currently only D extensions to python are supported
 
 # Requirements
 
@@ -18,18 +19,8 @@ CPython 2.7+
 
 ## D Compilers
 
-* DMD, LDC fe2.065+
-* GDC fe2.065+, embedding only (GDC still doesn't have shared library support!)
-
-Note all D compilers are based on DMD's front end, so while LDC and GDC have 
-their own verisoning schemes, I only pay attention to the front end version. 
+Currently tested and working on DMD 2.068+, others may work too, don't know.
 
 
 [build-status-badge]: https://travis-ci.org/John-Colvin/pyd.svg?branch=master
 [build-status]: https://travis-ci.org/John-Colvin/pyd
-[docs-badge]: https://readthedocs.org/projects/pyd/badge/
-[docs]: http://pyd.readthedocs.org/
-[pypi-version]: https://pypip.in/version/pyd/badge.svg
-[pypi]: https://pypi.python.org/pypi/pyd
-[license-badge]: https://pypip.in/license/pyd/badge.svg
-[license]: https://pypi.python.org/pypi/pyd/
