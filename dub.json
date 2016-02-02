@@ -11,7 +11,7 @@
     "versions-osx":     ["Python_Unicode_UCS2"],
     "versions-windows": ["Python_Unicode_UCS2"],
     "dependencies": {
-        "cpython": "*"
+        "cpython": "~>1.0.0-beta1"
     },
     "configurations": [
         {
