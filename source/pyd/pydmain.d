@@ -40,6 +40,7 @@ if (__traits(compiles, PydMain()))
         pragma(mangle, "init" ~ moduleName)
         extern(C) export void _init()
         {
+            rt_init();
             pyd.exception.exception_catcher(
                 delegate void()
                 {
