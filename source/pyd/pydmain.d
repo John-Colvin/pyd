@@ -45,7 +45,7 @@ if (__traits(compiles, PydMain()))
                 delegate void()
                 {
                     pyd.thread.ensureAttached();
-                    pyd.def.pyd_module_name = "%(modulename)s";
+                    pyd.def.pyd_module_name = moduleName;
                     PydMain();
                 });
         }
