@@ -7,114 +7,48 @@
         "Kirk McDonald"
     ],
     "license": "MIT",
-    "versions-linux":   ["Python_Unicode_UCS4"],
-    "versions-osx":     ["Python_Unicode_UCS2"],
-    "versions-windows": ["Python_Unicode_UCS2"],
     "dependencies": {
         "cpython": "~>1.0.0-beta1"
     },
     "configurations": [
         {
             "name": "python27",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python27"
             }
         },
         {
             "name": "python30",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python30"
             }
         },
         {
             "name": "python31",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-                "Python_3_1_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python31"
             }
         },
         {
             "name": "python32",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-                "Python_3_1_Or_Later",
-                "Python_3_2_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python32"
             }
         },
         {
             "name": "python33",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-                "Python_3_1_Or_Later",
-                "Python_3_2_Or_Later",
-                "Python_3_3_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python33"
             }
         },
         {
             "name": "python34",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-                "Python_3_1_Or_Later",
-                "Python_3_2_Or_Later",
-                "Python_3_3_Or_Later",
-                "Python_3_4_Or_Later",
-            ],
             "subConfigurations": {
                 "cpython": "python34"
             }
         },
         {
             "name": "python35",
-            "versions": [
-                "Python_2_4_Or_Later",
-                "Python_2_5_Or_Later",
-                "Python_2_6_Or_Later",
-                "Python_2_7_Or_Later",
-                "Python_3_0_Or_Later",
-                "Python_3_1_Or_Later",
-                "Python_3_2_Or_Later",
-                "Python_3_3_Or_Later",
-                "Python_3_4_Or_Later",
-                "Python_3_5_Or_Later"
-            ],
             "subConfigurations": {
                 "cpython": "python35"
             }
