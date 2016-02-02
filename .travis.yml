@@ -50,5 +50,13 @@ addons:
      - python-dev
      - python3-dev
 
+install:
+ - if [ $TRAVIS_OS_NAME == osx ];
+   then
+     brew update;
+     brew install python python3
+     brew install homebrew/python/numpy --with-python3;
+   fi
+
 script:
   - cd examples && ./runAll.sh $TEST_PYTHON $DC $ARCH
