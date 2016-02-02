@@ -13,6 +13,3 @@ void main() {
     context.py_stmts("print ('1 + %s' % a)");
 }
 
-
-
-

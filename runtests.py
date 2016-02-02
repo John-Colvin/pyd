@@ -27,7 +27,7 @@ do_clean = False
 
 
 def pybuild():
-    pybuild_cmds = [sys.executable, "setup.py", "build"]
+    pybuild_cmds = ["dub", "build", "--force"]
     if compiler is not None:
         pybuild_cmds.append("--compiler="+compiler)
     subprocess.check_call(pybuild_cmds)
@@ -36,8 +36,8 @@ def pybuild():
 class OurPlugin(Plugin):
     def options(self, parser, env=os.environ):
         parser.add_option("--compiler", dest="compiler")
-        parser.add_option("--clean", action="store_true", dest="clean")
-        parser.add_option('--d-debug', action="store_true", dest="debug")
+        #parser.add_option("--clean", action="store_true", dest="clean")
+        #parser.add_option('--d-debug', action="store_true", dest="debug")
 
     def configure(self, options, conf):
         global do_clean, compiler, debug
@@ -45,8 +45,8 @@ class OurPlugin(Plugin):
 
         if options.compiler:
             compiler = options.compiler
-        if options.clean:
-            do_clean = True
+#        if options.clean:
+#            do_clean = True
 
 
 def setup():
