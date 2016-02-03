@@ -81,8 +81,8 @@ void defer_class_wrap(string modulename, string classname,
 struct ModuleName(string _modulename) {
     enum modulename = _modulename;
 }
-template IsModuleName(T...) {
-    enum bool IsModuleName = T[0].stringof.startsWith("ModuleName!");
+template isModuleName(T...) {
+    enum bool isModuleName = T[0].stringof.startsWith("ModuleName!");
 }
 
 /// Param of def, Def, StaticDef
@@ -90,23 +90,23 @@ struct Docstring(string _doc) {
     enum doc = _doc;
 }
 
-template IsDocstring(T...) {
-    enum bool IsDocstring = T[0].stringof.startsWith("Docstring!");
+template isDocstring(T...) {
+    enum bool isDocstring = T[0].stringof.startsWith("Docstring!");
 }
 /// Param of def, Def, StaticDef
 struct PyName(string _name) {
     enum name = _name;
 }
-template IsPyName(T...) {
-    enum bool IsPyName = T[0].stringof.startsWith("PyName!");
+template isPyName(T...) {
+    enum bool isPyName = T[0].stringof.startsWith("PyName!");
 }
 
 /// Param of Property, Member
 struct Mode(string _mode) {
     enum mode = _mode;
 }
-template IsMode(T...) {
-    enum bool IsMode = T[0].stringof.startsWith("Mode!");
+template isMode(T...) {
+    enum bool isMode = T[0].stringof.startsWith("Mode!");
 }
 
 struct Args(string default_modulename,
@@ -114,40 +114,40 @@ struct Args(string default_modulename,
             string default_pyname,
             string default_mode,
             Params...) {
-    alias Docstrings = Filter!(IsDocstring, Params);
+    alias Docstrings = Filter!(isDocstring, Params);
     static if(Docstrings.length) {
         enum docstring = Docstrings[0].doc;
     }else{
         enum docstring = default_docstring;
     }
-    alias PyNames = Filter!(IsPyName, Params);
+    alias PyNames = Filter!(isPyName, Params);
     static if(PyNames.length) {
         enum pyname = PyNames[0].name;
     }else{
         enum pyname = default_pyname;
     }
-    alias Modes = Filter!(IsMode, Params);
+    alias Modes = Filter!(isMode, Params);
     static if(Modes.length) {
         enum mode = Modes[0].mode;
     }else{
         enum mode = default_mode;
     }
-    alias ModuleNames = Filter!(IsModuleName, Params);
+    alias ModuleNames = Filter!(isModuleName, Params);
     static if(ModuleNames.length) {
         enum modulename = ModuleNames[0].modulename;
     }else{
         enum modulename = default_modulename;
     }
 
-    alias rem = Filter!(templateNot!IsModuleName,
-          Filter!(templateNot!IsDocstring,
-          Filter!(templateNot!IsPyName,
-          Filter!(templateNot!IsMode,
+    alias rem = Filter!(templateNot!isModuleName,
+          Filter!(templateNot!isDocstring,
+          Filter!(templateNot!isPyName,
+          Filter!(templateNot!isMode,
               Params))));
-    template IsString(T...) {
-        enum bool IsString = is(typeof(T[0]) == string);
+    template isString(T...) {
+        enum bool isString = is(typeof(T[0]) == string);
     }
-    static if(Filter!(IsString, rem).length) {
+    static if(Filter!(isString, rem).length) {
         static assert(false, "string parameters must be wrapped with Docstring, Mode, etc");
     }
 }
@@ -231,10 +231,10 @@ template def_selector(alias fn, fn_t) {
     }
 }
 
-template IsEponymousTemplateFunction(alias fn) {
+template isEponymousTemplateFunction(alias fn) {
     // dmd issue 13372: its not a bug, its a feature!
     alias Parent = TypeTuple!(__traits(parent, fn))[0];
-    enum IsEponymousTemplateFunction = is(typeof(Parent) == typeof(fn));
+    enum isEponymousTemplateFunction = is(typeof(Parent) == typeof(fn));
 }
 
 template alias_selector(alias fn, fn_t) {
@@ -242,17 +242,17 @@ template alias_selector(alias fn, fn_t) {
     alias ret = ReturnType!fn_t;
     alias Parent = TypeTuple!(__traits(parent, fn))[0];
     enum nom = __traits(identifier, fn);
-    template IsDesired(alias f) {
+    template isDesired(alias f) {
         alias fps = ParameterTypeTuple!f;
         alias fret = ReturnType!f;
-        enum bool IsDesired = is(ps == fps) && is(fret == ret);
+        enum bool isDesired = is(ps == fps) && is(fret == ret);
     }
-    static if(IsEponymousTemplateFunction!fn) {
+    static if(isEponymousTemplateFunction!fn) {
         alias Overloads = TypeTuple!(fn);
     }else{
         alias Overloads = TypeTuple!(__traits(getOverloads, Parent, nom));
     }
-    alias VOverloads = Filter!(IsDesired, Overloads);
+    alias VOverloads = Filter!(isDesired, Overloads);
 }
 
 string pyd_module_name;

@@ -36,14 +36,14 @@ import pyd.func_wrap;
 import pyd.exception;
 import pyd.make_object;
 
-// wrap a binary operator overload, handling __op__, __rop__, or 
+// wrap a binary operator overload, handling __op__, __rop__, or
 // __op__ and __rop__ as necessary.
 // use new style operator overloading (ie check which arg is actually self).
-// _lop.C is a tuple w length 0 or 1 containing a BinaryOperatorX instance.
-// same for _rop.C.
+// _lop.expand is a tuple w length 0 or 1 containing a BinaryOperatorX instance.
+// same for _rop.expand.
 template binop_wrap(T, _lop, _rop) {
-    alias lop = _lop.C;
-    alias rop = _rop.C;
+    alias lop = _lop.expand;
+    alias rop = _rop.expand;
     alias wtype = PydTypeObject!T;
     static if(lop.length) {
         alias lop0 = lop[0];
@@ -73,7 +73,7 @@ template binop_wrap(T, _lop, _rop) {
                     }else{
                         enforce(false, format(
                             "unsupported operand type(s) for %s: '%s' and '%s'",
-                            lop[0].op, to!string(o1.ob_type.tp_name), 
+                            lop[0].op, to!string(o1.ob_type.tp_name),
                             to!string(o2.ob_type.tp_name),
                         ));
                     }
@@ -129,8 +129,8 @@ template binopasg_wrap(T, alias fn) {
 
 // pow is special. its stupid slot is a ternary function.
 template powop_wrap(T, _lop, _rop) {
-    alias lop = _lop.C;
-    alias rop = _rop.C;
+    alias lop = _lop.expand;
+    alias rop = _rop.expand;
     alias wtype = PydTypeObject!T;
     static if(lop.length) {
         alias lop0 = lop[0];
@@ -207,8 +207,8 @@ template powopasg_wrap(T, alias fn) {
 }
 
 template opcall_wrap(T, alias fn) {
-    static assert(constCompatible(constness!T, constness!(typeof(fn))), 
-            format("constness mismatch instance: %s function: %s", 
+    static assert(constCompatible(constness!T, constness!(typeof(fn))),
+            format("constness mismatch instance: %s function: %s",
                 T.stringof, typeof(fn).stringof));
     alias wtype = PydTypeObject!T;
     alias get_dg = dg_wrapper!(T, typeof(&fn));
@@ -339,14 +339,14 @@ template opindexassign_wrap(T, alias fn) {
 }
 
 template inop_wrap(T, _lop, _rop) {
-    alias rop = _rop.C;
+    alias rop = _rop.expadn;
     static if(rop.length) {
         alias rop0 = rop[0];
         alias rfn = rop0.Inner!T.FN;
         alias get_dgr = dg_wrapper!(T, typeof(&rfn));
         alias ROtherT = ParameterTypeTuple!(rfn)[0];
     }
-    
+
     extern(C)
     int func(PyObject* o1, PyObject* o2) {
         return exception_catcher(delegate int() {
@@ -357,8 +357,8 @@ template inop_wrap(T, _lop, _rop) {
 }
 
 template opcmp_wrap(T, alias fn) {
-    static assert(constCompatible(constness!T, constness!(typeof(fn))), 
-            format("constness mismatch instance: %s function: %s", 
+    static assert(constCompatible(constness!T, constness!(typeof(fn))),
+            format("constness mismatch instance: %s function: %s",
                 T.stringof, typeof(fn).stringof));
     alias Info = ParameterTypeTuple!(fn);
     alias OtherT = Info[0];
@@ -378,8 +378,8 @@ template opcmp_wrap(T, alias fn) {
 }
 
 template rich_opcmp_wrap(T, alias fn) {
-    static assert(constCompatible(constness!T, constness!(typeof(fn))), 
-            format("constness mismatch instance: %s function: %s", 
+    static assert(constCompatible(constness!T, constness!(typeof(fn))),
+            format("constness mismatch instance: %s function: %s",
                 T.stringof, typeof(fn).stringof));
     alias Info = ParameterTypeTuple!(fn);
     alias get_dg = dg_wrapper!(T, typeof(&fn));
