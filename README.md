@@ -9,8 +9,6 @@ speed with modern D.
 
 So far it's mostly been a job of deleting old things and revamping the build system.
 
-Currently only D extensions to python are supported
-
 # Requirements
 
 ## Python
