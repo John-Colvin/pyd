@@ -17,8 +17,8 @@ CPython 2.7+
 
 ## D Compilers
 
-Currently tested and working on DMD 2.068+, others may work too, don't know.
-
+Currently tested and working on DMD 2.071.0 and LDC 0.17.1, others may work too, don't know.
+Using LDC requires dub 0.9.25 (currently available: 0.9.25-rc.1)
 
 [build-status-badge]: https://travis-ci.org/John-Colvin/pyd.svg?branch=master
 [build-status]: https://travis-ci.org/John-Colvin/pyd
