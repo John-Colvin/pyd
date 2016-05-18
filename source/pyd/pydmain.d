@@ -21,6 +21,7 @@ if (__traits(compiles, PydMain()))
     {
         import deimos.python.Python;
 
+        pragma(msg, "creating PyInit_" ~ moduleName);
         pragma(mangle, "PyInit_" ~ moduleName)
         extern(C) export PyObject* _PyInit()
         {
@@ -37,6 +38,7 @@ if (__traits(compiles, PydMain()))
     }
     else version(Python_2_4_Or_Later)
     {
+        pragma(msg, "creating init" ~ moduleName);
         pragma(mangle, "init" ~ moduleName)
         extern(C) export void _init()
         {

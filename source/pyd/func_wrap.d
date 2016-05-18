@@ -26,6 +26,7 @@ SOFTWARE.
 module pyd.func_wrap;
 
 import deimos.python.Python;
+import std.format;
 import std.algorithm: max;
 import std.exception: enforce;
 import std.range;
@@ -33,6 +34,7 @@ import std.conv;
 import std.compiler;
 import util.typelist;
 import util.typeinfo;
+import util.replace : Replace;
 
 import pyd.def;
 import pyd.references;

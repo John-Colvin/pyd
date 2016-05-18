@@ -27,6 +27,7 @@ module pyd.extra;
 
 import std.traits;
 import std.complex;
+import std.exception : enforce;
 
 import pyd.pydobject;
 import pyd.exception;

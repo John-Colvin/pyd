@@ -34,6 +34,7 @@ import std.traits;
 import util.conv;
 import util.typelist;
 import pyd.func_wrap;
+import std.exception : enforce;
 
 private PyMethodDef[] module_global_methods = [
     { null, null, 0, null }

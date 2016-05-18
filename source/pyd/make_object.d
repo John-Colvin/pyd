@@ -33,6 +33,7 @@ module pyd.make_object;
 
 import deimos.python.Python;
 
+import std.format;
 import std.array;
 import std.algorithm;
 import std.complex;
@@ -44,6 +45,7 @@ import std.typecons;
 import std.conv;
 import std.range;
 import std.stdio;
+import std.exception : enforce;
 
 import core.stdc.string : memcpy, strlen;
 
@@ -54,7 +56,6 @@ import pyd.struct_wrap;
 import pyd.func_wrap;
 import pyd.def;
 import pyd.exception;
-
 
 shared static this() {
     init_rangewrapper();
@@ -284,7 +285,6 @@ PyObject* d_tuple_to_python(T) (T t) if (isTuple!T) {
 }
 
 PyObject* d_bigint_to_python(BigInt t) {
-    import std.string: format;
     string num_str = format("%s\0",t);
     return PyLong_FromString(num_str.dup.ptr, null, 10);
 }

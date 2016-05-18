@@ -21,9 +21,11 @@ SOFTWARE.
 */
 module pyd.ctor_wrap;
 
+import std.exception : enforce;
 import std.traits;
 import util.typelist: Join;
 import util.typeinfo;
+import util.replace : Replace;
 import deimos.python.Python;
 import pyd.references;
 import pyd.class_wrap;
